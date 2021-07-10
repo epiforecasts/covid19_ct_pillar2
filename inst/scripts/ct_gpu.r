@@ -1,16 +1,19 @@
 options(echo = TRUE)
 
 library("here")
-
-source(here::here("R", "ct_model.r"))
-
 suppressWarnings(dir.create(here::here("output")))
+
+if (!interactive()) {
+  source(here::here("R", "ct_model.r"))
+  args <- commandArgs(trailingOnly = TRUE)
+  model <- args[1]
+}
 
 for (target_gene in 1:2) {
   data <- variants %>%
      rename(log10vl = !!quo_name(paste0("p2ch", target_gene, "cvl")))
-  model_code <- make_stancode(models[["symptoms"]], data)
-  model_data <- make_standata(models[["symptoms"]], data)
+  model_code <- make_stancode(models[[model]], data)
+  model_data <- make_standata(models[[model]], data)
   class(model_data) <- "list"
   model_file <- write_stan_file(model_code)
   mod_cl <- cmdstan_model(model_file, cpp_options = list(stan_opencl = TRUE))
