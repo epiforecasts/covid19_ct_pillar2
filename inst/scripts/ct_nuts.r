@@ -11,11 +11,11 @@ if (!interactive()) {
 }
 
 for (target_gene in 1:2) {
-  fit <- fit_model(model, target_gene, sample = 0.1, threads = threading(36))
-  saveRDS(fit, here::here("output", paste0("ct_", model, target_gene, "_subsampled.rds")))
+  fit <- fit_model(model, target_gene, sample = 0.1, fit_to = "q", threads = threading(36))
+  saveRDS(fit, here::here("output", paste0("ct_", model, target_gene, "_ct_subsampled.rds")))
 }
 
 for (target_gene in 1:2) {
-  fit <- fit_model(model, target_gene, threads = threading(36))
-  saveRDS(fit, here::here("output", paste0("ct_", model, target_gene, ".rds")))
+  fit <- fit_model(model, target_gene, fit_to = "q", threads = threading(36))
+  saveRDS(fit, here::here("output", paste0("ct_", model, target_gene, "_ct.rds")))
 }
