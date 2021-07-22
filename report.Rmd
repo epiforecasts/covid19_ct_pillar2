@@ -1,0 +1,346 @@
+---
+title: "Viral loads in pillar 2 cases in England"
+author: Sebastian Funk, Sam Abbott on behalf of the CMMID Covid-19 Working Group
+date: 22 July, 2021. WORK IN PROGRESS.
+csl: https://raw.githubusercontent.com/citation-style-language/styles/master/apa-numeric-superscript-brackets.csl
+header-includes:
+   - \usepackage{float}
+output:
+    pdf_document
+---
+
+```{r setup, echo = FALSE, cache = FALSE, include = FALSE}
+library("dplyr")
+library("tidyr")
+library("tidybayes")
+library("ggplot2")
+library("brms")
+library("loo")
+library("lubridate")
+library("readr")
+library("forcats")
+library("socialmixr")
+library("RColorBrewer")
+library("cowplot")
+library("stringi")
+
+target_genes <- c("ORF1ab", "N")
+suppressWarnings(dir.create(here::here("figure")))
+
+output_files <- list.files(here::here("output"), pattern = "^ct_") %>%
+  sub(pattern = "ct_", replacement = "") %>%
+  sub(pattern = "[0-9](_(vb|subsampled))?\\.rds$", replacement = "") %>%
+  unique()
+
+loos <- list()
+draws <- list()
+smooths <- list()
+effects <- list()
+baselines <- list()
+fits <- list()
+
+model <- "symptoms_random_age"
+select_type <- "ct_subsampled"
+```
+
+```{r load, echo = FALSE, include = FALSE, cache.extra = c(model, select_type), cache = TRUE, cache.vars = c("draws", "smooth", "variants")}
+file_names <-
+  list.files(here::here("output"), pattern = paste0("^ct_", model, "[12]_", select_type))
+target_gene <- target_genes[parse_number(file_names)]
+for (idx in seq_along(file_names)) {
+  fits[[idx]] <- readRDS(here::here("output", file_names[[idx]]))
+  draws[[idx]] <- fits[[idx]] %>%
+    ## recreate spread_draws(`(b|r|s_sd)_.*`, regex = TRUE)
+    ## which doesn't work with vb
+    posterior_samples(add_chain = TRUE) %>%
+    as_tibble() %>%
+    mutate(chain = as.integer(as.character(chain))) %>%
+    group_by(.chain = chain) %>%
+    mutate(iter = as.integer(iter - min(iter) + 1L)) %>%
+    ungroup() %>%
+    arrange(.chain, iter) %>%
+    mutate(.draw = row_number()) %>%
+    rename(.iteration = iter) %>%
+    relocate(any_of(c(".chain", ".iteration", ".draw"))) %>%
+    ## assign extra vars
+    mutate(target_gene = target_gene[idx])
+  if ("days_since_onset" %in% names(fits[[idx]]$data)) {
+    fits[[idx]]$data$days_since_onset <-
+      as.integer(fits[[idx]]$data$days_since_onset)
+  }
+  if (any(grepl("^s_", colnames(draws[[file]][[idx]])))) {
+    smooths[[file]][[idx]] <- conditional_smooths(fits[[idx]])$mu %>%
+                                                             mutate(type = type[idx],
+                                                                    target_gene = target_gene[idx])
+  }
+}
+draws <- bind_rows(draws)
+smooths <- bind_rows(smooths)
+
+variants <- lapply(seq_along(target_genes), function(x) {
+  fits[[x]]$data %>%
+    as_tibble()
+})
+names(variants) <- target_genes
+variants <- variants %>%
+  bind_rows(.id = "target_gene")
+```
+
+```{r estimate_effects, echo = FALSE, include = FALSE, cache.extra = c(model, select_type), cache = TRUE, cache.vars = c("age_baselines", "variant_effects", "vaccine_effects")}
+baseline_draws <- draws %>%
+  select(.draw, target_gene, matches("^(b|r)_")) %>%
+  pivot_longer(matches("^(b|r)_")) %>%
+  filter(grepl("_(sigma|Intercept|days_since_onset)$", name)) %>%
+  mutate(name = sub("^(b|r)_", "", name))
+
+baselines <- baseline_draws %>%
+  group_by(across(c(-`.draw`, -value))) %>%
+  summarise(median = quantile(value, 0.5),
+            lower = quantile(value, 0.05),
+            upper = quantile(value, 0.95),
+            .groups = "drop")
+
+effects <- draws %>%
+  select(.draw, target_gene, matches("^(b|r)_")) %>%
+  pivot_longer(matches("^(b|r)_")) %>%
+  filter(!grepl("_(sigma|Intercept|days_since_onset)", name)) %>%
+  mutate(name = sub("^sex", "", name),
+         name = sub("^variant_alt_name", "", name),
+         name = sub("Lineage.*B.1.1.7.*first.*detected.*in.*Kent)?", "Variant Alpha", name),
+         name = sub("Lineage.*B.1.617.2.*India)?", "Variant Delta", name))
+
+separate_effects <- effects %>%
+  filter(grepl("r_variant_alt_name:dose:product_display_type:age_group", name)) %>%
+  mutate(name = sub("r_.*\\[([A-Za-z _]+)_dose([0-9])+_(_?[A-Za-z]+)_([0-9+-]+),(.+)]",
+                    "\\1|\\2|\\3|\\4|\\5", name)) %>%
+  separate(name, c("Variant", "Vaccine doses", "Vaccine", "Age group", "effect_on"),
+           sep = "\\|") %>%
+  mutate(Variant = sub("^_", "", Variant),
+         `Vaccine doses` =
+           if_else(`Vaccine doses` == 0, "Unvaccinated",
+                   paste0(`Vaccine doses`, " dose",
+                         if_else(`Vaccine doses` == 1, "", "s"))),
+         effect_on = recode_factor(effect_on,
+                                   Intercept = "level",
+                                   days_since_onset = "slope"))
+
+age_baselines <- separate_effects %>%
+  inner_join(baseline_draws %>%
+             mutate(effect_on = recode_factor(name,
+                                              Intercept = "level",
+                                              days_since_onset = "slope",
+                                              .default = NA_character_
+                                              )) %>%
+             filter(!is.na(effect_on)) %>%
+             rename(baseline = value),
+             by = c(".draw", "target_gene", "effect_on")) %>%
+  mutate(value = value + baseline) %>%
+  select(-baseline) %>%
+  group_by(across(c(-`.draw`, -value))) %>%
+  summarise(median = quantile(value, 0.5, na.rm = TRUE),
+            lower = quantile(value, 0.05, na.rm = TRUE),
+            upper = quantile(value, 0.95, na.rm = TRUE),
+            .groups = "drop")
+
+variant_effects <- separate_effects %>%
+  pivot_wider(names_from = "Variant") %>%
+  pivot_longer(starts_with("Variant"), names_to = "Variant") %>%
+  mutate(value = value - Wildtype) %>%
+  filter(!is.na(value)) %>%
+  select(-Wildtype) %>%
+  group_by(across(c(-`.draw`, -value))) %>%
+  summarise(median = quantile(value, 0.5, na.rm = TRUE),
+            lower = quantile(value, 0.05, na.rm = TRUE),
+            upper = quantile(value, 0.95, na.rm = TRUE),
+            .groups = "drop")
+
+vaccine_effects <- separate_effects %>%
+  mutate(Vaccine = paste(`Vaccine doses`, Vaccine)) %>%
+  select(-`Vaccine doses`) %>%
+  pivot_wider(names_from = "Vaccine") %>%
+  pivot_longer(matches("^[1-9] dose"), names_to = "Vaccine") %>%
+  mutate(value = value - `Unvaccinated _None`) %>%
+  filter(!is.na(value)) %>%
+  select(-`Unvaccinated _None`) %>%
+  group_by(across(c(-`.draw`, -value))) %>%
+  summarise(median = quantile(value, 0.5, na.rm = TRUE),
+            lower = quantile(value, 0.05, na.rm = TRUE),
+            upper = quantile(value, 0.95, na.rm = TRUE),
+            .groups = "drop")
+```
+
+```{r posterior_predictions, echo = FALSE, include = FALSE, cache.extra = c(model, select_type), cache = TRUE, cache.vars = "means"}
+row_vec <- split(seq_len(nrow(variants)), (seq(nrow(variants))-1) %/% 1e+5)
+
+pp <- list()
+
+for (target_gene in 1:2) {
+  pp[[target_gene]] <- lapply(seq_along(row_vec), function(x) {
+    cat(x, "\n")
+    variants %>%
+      slice(row_vec[[x]]) %>%
+      ## tidybayes wants onsetdate to be an integer so we store the data
+      ## in a variable of a (slightly) different name
+      mutate(onset_date = onsetdate) %>%
+      mutate(onsetdate = as.integer(onsetdate)) %>%
+      add_predicted_draws(fits[[target_gene]], allow_new_levels = TRUE, n = 1)
+  })
+}
+names(pp) <- target_genes
+
+pp_data <- pp %>%
+  lapply(bind_rows) %>%
+  bind_rows(.id = "target_gene") %>%
+  ungroup() %>%
+  mutate(lower_age_limit = as.integer(sub("[-+].*$", "", age_group)),
+         lower_age_limit =
+         reduce_agegroups(lower_age_limit, seq(0, 60, by = 20)),
+       age_group = limits_to_agegroups(lower_age_limit),
+       onset_week = floor_date(onset_date, "week", 1))
+
+means <- pp_data %>%
+  rename(data = log10vl, prediction = `.prediction`) %>%
+  pivot_longer(c(data, prediction), names_to = "type") %>%
+  group_by(onset_week, age_group, target_gene, type) %>%
+  summarise(mean = mean(value),
+            low = quantile(value, 0.375),
+            high = quantile(value, 0.625),
+            lower = quantile(value, 0.25),
+            higher = quantile(value, 0.75),
+            n = n(),
+            .groups = "drop")
+```
+
+# Summary
+
+We modelled individual Ct values from symptomatic pillar 2 values in order to study:
+
+- Ct values by age
+- Ct values by variant (possibly interacting with age)
+- Ct values by vaccine status (possibly interacting with variant)
+
+We find heterogeneity by age with decreasing Ct values (corresponding to higher viral loads) with increasing age with wildtype or Alpha. This effect is less pronounced in Delta, although the youngest age groups still yield highest Ct values (lowest viral loads).
+
+Delta produces lower Ct values (higher viral loads) than either wildtype or Delta. The size of this effect depends on the target gene: with respect to ORF1ab wildtype and Alpha produce very similar Ct values, with Delta substantially lower. With respect to N Alpha yields lower Ct values than wildtype, with Delta lower yet but less pronouncedly so than with ORF1ab.
+
+# Methods
+
+Individual Ct values from `r nrow(variants)` symptomatic pillar 2 cases were modelled as a function of: sex, age group (in 10-year bands), variant, vaccination states and days of test after symptom onset. The effect of variants and vaccines was modelled separately for each age group and combined into a group level effect. Mathematically:
+
+\begin{align}
+\mathrm{y} = & \alpha_{i}(\mathrm{sex}) + \\
+    & \alpha_{jklm}(\mathrm{variant, doses, vaccine, age}) + \\
+    & \beta(\mathrm{days~since~onset}) + \beta_i(\mathrm{sex})(\mathrm{days~since~onset}) + \\
+    & \beta_{jklm}(\mathrm{variant, doses, vaccine, age})(\mathrm{days~since~onset})
+\end{align}
+
+with a single group-level factor combining the variant, numer of doses received, vaccine (if vaccinated) and age group. Observations are modelled with a student-t distribution centered around $y$.
+
+```{r age_effect, echo = FALSE, fig.cap = "Effect of variants on Ct values by age and target gene in unvaccinated cases."}
+on_effect <- "level"
+abp <- age_baselines %>%
+  filter(effect_on == on_effect) %>%
+  mutate(Variant =
+           factor(Variant,
+                  levels = c("Wildtype",
+                             setdiff(unique(Variant), "Wildtype"))),
+         `Vaccine doses` =
+           factor(`Vaccine doses`,
+                  levels = c("Unvaccinated",
+                             setdiff(unique(`Vaccine doses`), "Unvaccinated"))),
+         Vaccine =
+           if_else(`Vaccine doses` == "Unvaccinated", "Unvaccinated",
+                   paste(`Vaccine doses`, Vaccine)),
+         Vaccine =
+           factor(Vaccine,
+                  levels = c("Unvaccinated",
+                             setdiff(unique(Vaccine), "Unvaccinated")))) %>%
+  filter(Vaccine == "Unvaccinated")
+
+ggplot2::ggplot(abp %>%
+                mutate(`Age group` = fct_rev(`Age group`)),
+                aes(x = `Age group`, y = median,
+                    ymin = lower, ymax = upper, color = Variant)) +
+  tidybayes::geom_pointinterval(position = position_dodge(width = 1)) +
+  ggplot2::scale_colour_brewer("", palette = "Dark2") +
+  ggplot2::xlab("") +
+  ggplot2::ylab(paste("Estimated baseline Ct value", on_effect)) +
+  ggplot2::coord_flip() +
+  ggplot2::facet_grid(target_gene ~ `Vaccine doses`) +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(legend.position = "top")
+```
+
+```{r variant_effect, echo = FALSE, fig.cap = "Effect of variants on Ct values by age and target gene in unvaccinated cases."}
+on_effect <- "level"
+palette <- brewer.pal(3, "Dark2")[2:3]
+vep <- variant_effects %>%
+  filter(effect_on == on_effect) %>%
+  mutate(Variant = factor(Variant),
+         `Vaccine doses` = factor(`Vaccine doses`, levels = unique(`Vaccine doses`)),
+         `Age group` = factor(`Age group`, levels = unique(`Age group`))) %>%
+  filter(`Vaccine doses` == "Unvaccinated")
+
+ggplot2::ggplot(vep %>%
+                mutate(`Age group` = fct_rev(`Age group`)),
+                aes(x = `Age group`, y = median,
+                    ymin = lower, ymax = upper, color = Variant)) +
+  tidybayes::geom_pointinterval(position = position_dodge(width = 1)) +
+  ggplot2::scale_colour_manual("", values = palette) +
+  ggplot2::xlab("") +
+  ggplot2::ylab(paste("Estimated additive effect on Ct value", on_effect)) +
+  ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
+  ggplot2::coord_flip() +
+  ggplot2::facet_grid(target_gene ~ `Vaccine doses`) +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(legend.position = "top")
+```
+
+```{r vaccine_effect, echo = FALSE, fig.cap = "Effect of vaccine status on Ct values by age and target gene."}
+on_effect <- "level"
+vap <- vaccine_effects %>%
+  filter(effect_on == on_effect) %>%
+  mutate(Variant =
+           factor(Variant,
+                  levels = c("Wildtype",
+                             setdiff(unique(Variant), "Wildtype"))))
+
+ggplot2::ggplot(vap %>%
+                             mutate(`Age group` = fct_rev(`Age group`)),
+                             aes(x = `Age group`, y = median,
+                                 ymin = lower, ymax = upper, color = Variant)) +
+  tidybayes::geom_pointinterval(position = position_dodge(width = 1)) +
+  ggplot2::scale_colour_manual("", values = palette) +
+  ggplot2::xlab("") +
+  ggplot2::ylab(paste("Estimated additive effect on Ct value", on_effect)) +
+  ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
+  ggplot2::coord_flip() +
+  ggplot2::facet_grid(target_gene ~ Vaccine) +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(legend.position = "top")
+```
+
+```{r posterior_predictive, echo = FALSE, fig.cap = "Comparison of fitted vs observed Ct values. Means are shown as lines, and 25/50% quantiles in the data and prediction intervals are shown as shaded areas."}
+ggplot(means %>%
+       filter(onset_week >= "2020-11-01") %>%
+       mutate(type = stringi::stri_trans_totitle(type)),
+       aes(x = onset_week, y = mean, colour = type, fill = type)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = low, ymax = high), alpha = 0.35, colour = NA) +
+  geom_ribbon(aes(ymin = lower, ymax = higher), alpha = 0.15, colour = NA) +
+  scale_colour_brewer("", palette = "Set1") +
+  scale_fill_brewer("", palette = "Set1") +
+  facet_grid(target_gene ~ age_group, scales = "free_y") +
+  theme_minimal() +
+  xlab("Week of symptom onset") +
+  ylab("Mean and 25/50% quantiles") +
+  theme(legend.position = "bottom") +
+  coord_cartesian(ylim = c(15, 23))
+```
+
+# Limitations
+
+- These are symptomatic pillar 2 cases and therefore subject to biases/changes in testing behaviour
+- Testing behaviour may particularly vary by age and vaccine status.
+- We did not use any information on prior infection which could introduces a bias if reinfections occur and affect observed Ct values (e.g., by age, but also by variant as the probability of reinfection probably varies by time and possibly by the variant itself with which a case is infeced if there is an element of immune escape).
+- Another bias may come from the fact that vaccinated cases may possess characteristics that produce higher viral loads that are not included in the analysis (e.g. be immunisuppressed)
