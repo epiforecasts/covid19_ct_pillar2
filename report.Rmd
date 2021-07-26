@@ -1,7 +1,7 @@
 ---
 title: "Viral loads in pillar 2 cases in England"
 author: Sebastian Funk, Sam Abbott on behalf of the CMMID Covid-19 Working Group
-date: 22 July, 2021. WORK IN PROGRESS.
+date: 23 July, 2021. WORK IN PROGRESS.
 csl: https://raw.githubusercontent.com/citation-style-language/styles/master/apa-numeric-superscript-brackets.csl
 header-includes:
    - \usepackage{float}
@@ -40,12 +40,13 @@ baselines <- list()
 fits <- list()
 
 model <- "symptoms_random_age"
-select_type <- "ct_subsampled"
+select_type <- "ct"
 ```
 
 ```{r load, echo = FALSE, include = FALSE, cache.extra = c(model, select_type), cache = TRUE, cache.vars = c("draws", "smooth", "variants")}
 file_names <-
-  list.files(here::here("output"), pattern = paste0("^ct_", model, "[12]_", select_type))
+  list.files(here::here("output"),
+             pattern = paste0("^ct_", model, "[12]_", select_type, ".rds"))
 target_gene <- target_genes[parse_number(file_names)]
 for (idx in seq_along(file_names)) {
   fits[[idx]] <- readRDS(here::here("output", file_names[[idx]]))
@@ -68,8 +69,8 @@ for (idx in seq_along(file_names)) {
     fits[[idx]]$data$days_since_onset <-
       as.integer(fits[[idx]]$data$days_since_onset)
   }
-  if (any(grepl("^s_", colnames(draws[[file]][[idx]])))) {
-    smooths[[file]][[idx]] <- conditional_smooths(fits[[idx]])$mu %>%
+  if (any(grepl("^s_", colnames(draws[[idx]])))) {
+    smooths[[idx]] <- conditional_smooths(fits[[idx]])$mu %>%
                                                              mutate(type = type[idx],
                                                                     target_gene = target_gene[idx])
   }
@@ -234,7 +235,7 @@ Individual Ct values from `r nrow(variants)` symptomatic pillar 2 cases were mod
     & \beta_{jklm}(\mathrm{variant, doses, vaccine, age})(\mathrm{days~since~onset})
 \end{align}
 
-with a single group-level factor combining the variant, numer of doses received, vaccine (if vaccinated) and age group. Observations are modelled with a student-t distribution centered around $y$.
+with a single group-level factor combining the variant, number of doses received, vaccine (if vaccinated) and age group. Observations are modelled with a student-t distribution centered around $y$.
 
 ```{r age_effect, echo = FALSE, fig.cap = "Effect of variants on Ct values by age and target gene in unvaccinated cases."}
 on_effect <- "level"
@@ -344,3 +345,4 @@ ggplot(means %>%
 - Testing behaviour may particularly vary by age and vaccine status.
 - We did not use any information on prior infection which could introduces a bias if reinfections occur and affect observed Ct values (e.g., by age, but also by variant as the probability of reinfection probably varies by time and possibly by the variant itself with which a case is infeced if there is an element of immune escape).
 - Another bias may come from the fact that vaccinated cases may possess characteristics that produce higher viral loads that are not included in the analysis (e.g. be immunisuppressed)
+- Ct value levels are referenced to the date of symptom onset. Differences between variants should therefore not be interpreted as differences in peak viral load. If the relationship between timing of symptom onset and timing of peak viral load are different between variants then they are not directly comparable in terms of overall infectiousness.
