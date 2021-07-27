@@ -232,10 +232,7 @@ Individual Ct values from `r format(nrow(variants), big.mark = ",")` symptomatic
 
 ## Modelling
 
-We modelled Ct values for each target gene independently and assumed an additive relationship between covariates with a student-t error model. The standard deviation of the student-t error model was allowed to vary by age group using a random effect
-
-
-Individual Ct values from `r format(nrow(variants), big.mark = ",")` symptomatic pillar 2 cases were modelled as a function of: sex, age group (in 10-year bands), variant, vaccination states and days of test after symptom onset. The effect of variants and vaccines was modelled separately for each age group and combined into a group level effect. Mathematically:
+We modelled Ct values for each target gene independently and assumed an additive relationship between covariates with a student-t error model. The standard deviation of the student-t error model was allowed to vary by age group using a random effect. All covariates for mean Ct values ($y$) were then modelled as fixed effects with the effect of variants and vaccines being modelled separately for each age group and combined into a group level effect. Interactions between days from symptom onset to test and all other covariates were also included, again as fixed effects. Mathematically this can be represented as follows:
 
 \begin{align}
 \mathrm{y} = & \alpha_{i}(\mathrm{sex}) + \\
@@ -244,7 +241,7 @@ Individual Ct values from `r format(nrow(variants), big.mark = ",")` symptomatic
     & \beta_{jklm}(\mathrm{variant, doses, vaccine, age})(\mathrm{days~since~onset})
 \end{align}
 
-with a single group-level factor combining the variant, number of doses received, vaccine (if vaccinated) and age group. Observations are modelled with a student-t distribution centered around $y$ with the standard deviation being modelled with a random effect for age group. 
+with a single group-level factor combining the variant, number of doses received, vaccine (if vaccinated) and age group. 
 
 ## Implementation
 
