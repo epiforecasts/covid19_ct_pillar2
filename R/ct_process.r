@@ -116,6 +116,4 @@ for (file in output_files) {
     ggplot2::theme(legend.position = "bottom")
   ggsave(here::here("figure", paste0("ct_age_", file, ".pdf")), p,
          width = 5, height = 5)
-
 }
-
