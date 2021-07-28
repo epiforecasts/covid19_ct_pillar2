@@ -1,7 +1,7 @@
 ---
 title: "Viral loads in pillar 2 cases in England"
 author: Sebastian Funk, Sam Abbott on behalf of the CMMID Covid-19 Working Group
-date: 23 July, 2021. WORK IN PROGRESS.
+date: 27 July, 2021. Preliminary report.
 bibliography: references.bib
 csl: https://raw.githubusercontent.com/citation-style-language/styles/master/apa-numeric-superscript-brackets.csl
 header-includes:
@@ -220,7 +220,7 @@ We modelled individual Ct values from symptomatic pillar 2 values as a proxy for
 - Ct values by variant (possibly interacting with age)
 - Ct values by vaccine status (possibly interacting with variant)
 
-We find evidence for heterogeneity by age, and variant with some evidence for variation between vaccine types and doses. Across all variants we found evidence that Ct values decreased with increasing age (corresponding to higher viral loads). The strength of this relationship was decreased for the Delta variant, although the youngest age groups still yield highest Ct values (lowest viral loads).
+We found evidence for heterogeneity by age, and variant with some evidence for variation between vaccine types and doses. Across all variants we found evidence that Ct values decreased with increasing age (corresponding to higher viral loads). The strength of this relationship was decreased for the Delta variant, although the youngest age groups still yield highest Ct values (lowest viral loads).
 
 The Delta variant was associated with lower Ct values (higher viral loads) than either wildtype or the Alpha variant. The size of this effect depends on the target gene: with respect to ORF1ab wildtype and Alpha were associated with very similar Ct values, with the Delta variant being associated with substantially lower Ct values. With respect to N the Alpha variant was associated with lower Ct values than wildtype, with the Delta variant again being associated with lower Ct values yet but less pronouncedly so than with ORF1ab.
 
@@ -245,7 +245,8 @@ with a single group-level factor combining the variant, number of doses received
 
 ## Implementation
 
-The model was implemented using the `brms`  [@brms] package version 2.15.0 in `R` version 4.0.5 [@R] with the `cmdstanr` backend [@cmdstanr]. Default priors from `brms` were used for all parameters. All code required to reproduce this analysis is available from [https://github.com/epiforecasts/covid19_ct_pillar2](https://github.com/epiforecasts/covid19_ct_pillar2). 
+The model was implemented using the `brms`  [@brms] package version 2.15.0 in `R` version 4.1.0 [@R] with the `cmdstanr` backend [@cmdstanr]. Default priors from `brms` were used for all parameters. 
+<!-- All code required to reproduce this analysis is available from [https://github.com/epiforecasts/covid19_ct_pillar2](https://github.com/epiforecasts/covid19_ct_pillar2).  -->
 
 # Results
 
@@ -353,10 +354,8 @@ ggplot(means %>%
 
 # Limitations
 
-- These are symptomatic pillar 2 cases and therefore subject to biases/changes in testing behaviour.
-- Testing behaviour may particularly vary by age and vaccine status.
-- We did not use any information on prior infection which could introduce a bias if reinfections occur and affect observed Ct values (e.g., by age, but also by variant as the probability of reinfection probably varies by time and possibly by the variant itself with which a case is infected if there is an element of immune escape).
-- Another bias may come from the fact that vaccinated cases may possess characteristics that produce higher viral loads that are not included in the analysis (e.g. be immunisuppressed)
+- The analysis was based on symptomatic pillar 2 cases and therefore subject to biases/changes in testing behaviour. Testing behaviour may particularly vary by age and vaccine status.
+- Vaccinated cases may possess characteristics that produce higher viral loads that are not included in the analysis (e.g. be immunisuppressed)
 - Ct value levels are referenced to the date of symptom onset. Differences between variants should therefore not be interpreted as differences in peak viral load. If the relationship between timing of symptom onset and timing of peak viral load are different between variants then they are not directly comparable in terms of overall infectiousness.
 - We modelled all relationships as independent fixed effects and did not include penalisation. This means that we did not make use of shared information between parameters or a priori expect some share of modelled parameters to have no effect. The impact of this may be mitigated due to the large number of available observations.
 - We excluded observations with a negative period between symptom onset and test date and more generally our data is not representative due to the delay between infection and testing in surveillance systems. This means that our observations are likely biased towards Ct values from after the peak viral load.
