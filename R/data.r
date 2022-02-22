@@ -2,6 +2,7 @@ library(forcats)
 library(dplyr)
 library(socialmixr)
 library(janitor)
+library(lubridate)
 
 load_data <- function(variant_file, max_days_since_onset = 6) {
 
