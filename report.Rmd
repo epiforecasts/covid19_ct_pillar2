@@ -1,6 +1,6 @@
 ---
 title: "Viral loads in symptomatic Covid-19 cases in England"
-author: Sebastian Funk, Sam Abbott
+author : Sebastian Funk, Sam Abbott
 date: 17 February, 2022. Preliminary report.
 bibliography: references.bib
 csl: https://raw.githubusercontent.com/citation-style-language/styles/master/apa-numeric-superscript-brackets.csl
@@ -14,65 +14,44 @@ output:
 ---
 
 ```{r setup, echo = FALSE, cache = FALSE, include = FALSE}
-library(forcats)
-library(dplyr)
-library(janitor)
-library(socialmixr)
-library(mgcv)
 library(gratia)
+library(ggplot2)
 
+source(here::here("R", "filenames.r"))
+```
+
+```{r load_data, echo = FALSE, cache.extra = file.mtime(ct_file), include = FALSE, cache = TRUE, cache.vars = "variants"}
 source(here::here("R", "data.r"))
-source(here::here("R", "utils.r"))
-
-suppressWarnings(dir.create(here::here("figure")))
+ct <- load_data(ct_file)
 ```
 
-```{r load, echo = FALSE, include = FALSE}
-variants <- load_data()
+```{r fit_models, echo = FALSE, include = FALSE, cache = FALSE}
+if (!file.exists(fit_file) || !file.exists(means_file)) {
+  source(here::here("scripts", "fit_models.r"))
+}
 ```
 
-```{r estimate_effects, echo = FALSE, include = FALSE}
-fit <- bam(ct ~
-             0 +
-             ivdr +
-             s(age) +
-             s(sex, bs = 're') + 
-             s(source_lab, bs = 're') +
-             s(days_since_onset, by = ivdr, k = 7),
-           data = variants, family = Gamma(link = "identity"))
+```{r load_fits, echo = FALSE, cache.extra = file.mtime(fit_file), include = FALSE, cache = TRUE, cache.vars = "fit"}
+fit <- readRDS(fit_file)
 ```
 
-```{r estimate_means, echo = FALSE, include = FALSE}
-means <- estimate_means(variants, c(
-  "days_since_onset", "reinfection", "dose", "variant")
-  ) %>%
-  mutate(days_since_onset = as.integer(sub("^var", "", days_since_onset)))
-age_means <- estimate_means(variants, c(
-  "days_since_onset", "reinfection", "dose", "variant", "age")
-  ) %>%
-  mutate(days_since_onset = as.integer(sub("^var", "", days_since_onset)))
-phase_means <-
-  estimate_means(variants, c(
-    "days_since_onset", "reinfection", "dose", "variant", "phase")
-    ) %>%
-  mutate(days_since_onset = as.integer(sub("^var", "", days_since_onset)))
-age_phase_means <-
-  estimate_means(variants, c(
-    "days_since_onset", "reinfection", "dose", "variant", "phase", "age_group")
-    ) %>%
-  mutate(days_since_onset = as.integer(sub("^var", "", days_since_onset)))
+```{r load_means, echo = FALSE, cache.extra = file.mtime(means_file), include = FALSE, cache = TRUE, cache.vars = "means"}
+means <- readRDS(means_file)
 ```
 
 ```{r prediction, echo = FALSE, include = FALSE}
+p <- predict(fit, type = "response")
+variants <- variants %>%
+  mutate(prediction = p, mean = mean(ct))
 ```
 
 # Introduction
 
 - viral loads are an important indicator of 1) infectiousness and 2) transmissibility
 - affected by age
-- Eyre paper, Drosten paper, anything else?
+- Eyre paper, Drosten paper, Walker paper, Hay paper, anything else?
 
-- two things: 1) increasing immunity and 2) emergence of new variants
+mathrm- two things: 1) increasing immunity and 2) emergence of new variants
 - important to characterise viral loads
 
 # Methods
@@ -91,7 +70,8 @@ We previously found evidence for heterogeneity by age, and variant with some evi
 
 ## Data
 
-Individual Ct values from symptomatic pillar 2 cases from the last twelve weeks were extracted for two target genes, ORF1ab and N along with data on the cases age, sex, variant, vaccination status as a combination of number of doses (1 or 2) and days between test and symptom onset. Cases were filtered to remove individuals with negative days between test and symptom onset and to remove those with a delay between symptom onset and testing of more than 28 days. Observations with missing data for any of the extracted variables were dropped from further analysis. Combinations of vaccine types, dosages and variants with fewer than 10 observations were then dropped from the extracted data.
+Individual Ct values from symptomatic pillar 2 cases from the last twelve weeks were extracted for two target genes, 
+ORF1ab and N along with data on the cases age, sex, variant, vaccination status as a combination of number of doses (1 or 2) and days between test and symptom onset. Cases were filtered to remove individuals with negative days between test and symptom onset and to remove those with a delay between symptom onset and testing of more than 28 days. Observations with missing data for any of the extracted variables were dropped from further analysis. Combinations of vaccine types, dosages and variants with fewer than 10 observations were then dropped from the extracted data.
 
 ```{r data, echo = FALSE}
 variants %>%
@@ -108,7 +88,7 @@ variants %>%
 We modelled Ct values for nucleocapsid protein (N) as target gene and assumed an additive relationship between covariates with gamma distributed errors. The standard deviation of the student-t error model was allowed to vary by age group using a random effect. All covariates for mean Ct values ($y$) were then modelled as fixed effects with the effect of variants and vaccines being modelled separately for each age group and combined into a group level effect. Interactions between days from symptom onset to test and all other covariates were also included, again as fixed effects. Mathematically this can be represented as follows:
 
 \begin{align}
-\mathrm{y} = & \alpha_{i}(\mathrm{sex}) + \\
+\mathrm{y} = & \alpha_{i}(\ {sex}) + \\
     & \alpha_{jklm}(\mathrm{variant, doses, vaccine, age}) + \\
     & \beta(\mathrm{days~since~onset}) + \beta_i(\mathrm{sex})(\mathrm{days~since~onset}) + \\
     & \beta_{jklm}(\mathrm{variant, doses, vaccine, age})(\mathrm{days~since~onset})
@@ -132,7 +112,7 @@ All code and data required to reproduce this analysis is available from [https:/
 - model: reproduces these relationships but not the time course; show phase bias
 
 ```{r means_plots, echo = FALSE, fig.cap = "Median ."}
-p <- ggplot(means %>%
+p <- ggplot(means[["means"]] %>%
             filter(dose == "dose0",
                    reinfection == "no known previous infection"),
             aes(x = days_since_onset, y = estimate, ymin = lower, ymax = upper,
@@ -149,7 +129,7 @@ p <- ggplot(means %>%
   scale_linetype("Time period")
 print(p)
 
-p <- ggplot(phase_means %>%
+p <- ggplot(means[["phase_means"]] %>%
             filter(dose == "dose0",
                    reinfection == "no known previous infection"),
             aes(x = days_since_onset, y = estimate, ymin = lower, ymax = upper,
@@ -166,6 +146,25 @@ p <- ggplot(phase_means %>%
   facet_wrap(~variant) +
   theme(legend.position = "bottom")
 print(p)
+
+p <- ggplot(means[["age_phase_means"]] %>%
+            filter(dose == "dose0",
+                   reinfection == "no known previous infection"),
+            aes(x = days_since_onset, y = estimate, ymin = lower, ymax = upper,
+                colour = phase, fill = phase)) +
+  geom_line() +
+  geom_point() +
+  geom_ribbon(alpha = 0.35) +
+  ylab("Median ct value") +
+  theme_minimal() +
+  xlab("Days since onset") +
+  scale_colour_brewer("Epidemic phase", palette = "Dark2") +
+  scale_fill_brewer("Epidemic phase", palette = "Dark2") +
+  scale_y_reverse() +
+  facet_wrap(age_group~variant, scales = "free_y", ncol = 3) +
+  theme(legend.position = "bottom")
+print(p)
+
 ```
 
 # Discussion
