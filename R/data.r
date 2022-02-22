@@ -3,7 +3,7 @@ library(dplyr)
 library(socialmixr)
 library(janitor)
 
-load_data <- function(max_days_since_onset = 6) {
+load_data <- function(variant_file, max_days_since_onset = 6) {
 
   epidemic_phase <-
     c(Alpha = "Dec 2020",
@@ -13,9 +13,8 @@ load_data <- function(max_days_since_onset = 6) {
     c(Alpha = "Jan 2021",
       Delta = "Dec 2021",
       Omicron = "Jan 2022")
-##  variants <- readRDS(here::here("data", "variants_vl.rds")) %>%
 
-  variants <- variants_raw %>%
+  variants <- readRDS(variant_file) %>%
     mutate(
       variant = recode_factor(variant, Wildtype = "_Wildtype"),
       variant = fct_relevel(variant, "_Wildtype"),
@@ -54,6 +53,6 @@ load_data <- function(max_days_since_onset = 6) {
 
   variants <- variants %>%
     inner_join(variants_freq, by = "dose_variant") %>%
-    select(source_lab, week_onset, days_since_onset, sex, age, reinfection,
-           dose, variant, ivdr, phase, ct = p2ch2cq)
+    select(source_lab, week_onset, days_since_onset, sex, age, age_group,
+           reinfection, dose, variant, ivdr, phase, ct = p2ch2cq)
 }
