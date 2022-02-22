@@ -75,10 +75,11 @@ ORF1ab and N along with data on the cases age, sex, variant, vaccination status 
 
 ```{r data, echo = FALSE}
 variants %>%
+  mutate(variant = if_else(variant == "_Wildtype", "Wildtype", variant)) %>%
+  filter(!is.na(variant)) %>%
   mutate(doses = as.integer(substr(as.character(dose), 5, 5))) %>%
-  rename(Variant = variant_alt_name, `Vaccine doses` = doses) %>%
+  rename(Variant = variant, `Vaccine doses` = doses) %>%
   count(Variant, `Vaccine doses`) %>%
-  filter(n > 100) %>%
   kbl(booktabs = TRUE) %>%
   kable_styling(latex_options = "striped")
 ```
