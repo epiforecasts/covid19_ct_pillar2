@@ -40,7 +40,8 @@ load_data <- function(variant_file, max_days_since_onset = 6) {
                                 age, limits = seq(0, 80, by = 20)),
       age_group = socialmixr::limits_to_agegroups(age_group)
     ) %>%
-    filter(days_since_onset >= 0 & days_since_onset <= max_days_since_onset)
+    filter(days_since_onset >= 0 & days_since_onset <= max_days_since_onset,
+           !is.na(ivdr))
 
   onset_week_start <- wday(max(variants$onsetdate) - 6, week_start = 1)
   variants <- variants %>%
