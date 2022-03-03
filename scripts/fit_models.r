@@ -10,7 +10,7 @@ source(here::here("R", "data.r"))
 source(here::here("R", "utils.r"))
 source(here::here("R", "filenames.r"))
 
-variants <- load_data(variant_file)
+ct <- load_data(ct_file)
 
 suppressWarnings(dir.create(here::here("output")))
 
@@ -22,30 +22,30 @@ fit <- bam(ct ~
              s(sex, bs = 're') +
              s(source_lab, bs = 're') +
              s(days_since_onset, by = ivdr, k = 7),
-           data = variants, family = Gamma(link = "identity"))
+           data = ct, family = Gamma(link = "identity"))
 saveRDS(fit, fit_file)
 
 ## means estimates
-means <- estimate_means(variants, c(
+means <- estimate_means(ct, c(
   "days_since_onset", "reinfection", "dose", "variant")
   ) %>%
   mutate(days_since_onset = as.integer(sub("^var", "", days_since_onset)))
-age_means <- estimate_means(variants, c(
+age_means <- estimate_means(ct, c(
   "days_since_onset", "reinfection", "dose", "variant", "age_group")
   ) %>%
   mutate(days_since_onset = as.integer(sub("^var", "", days_since_onset)))
 phase_means <-
-  estimate_means(variants, c(
+  estimate_means(ct, c(
     "days_since_onset", "reinfection", "dose", "variant", "phase")
     ) %>%
   mutate(days_since_onset = as.integer(sub("^var", "", days_since_onset)))
 age_phase_means <-
-  estimate_means(variants, c(
+  estimate_means(ct, c(
     "days_since_onset", "reinfection", "dose", "variant", "phase", "age_group")
     ) %>%
   mutate(days_since_onset = as.integer(sub("^var", "", days_since_onset)))
 time_means <-
-  estimate_means(variants, c(
+  estimate_means(ct, c(
     "week_onset", "variant")
     )
 saveRDS(list(means = means,
