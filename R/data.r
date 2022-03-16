@@ -51,10 +51,10 @@ load_data <- function(variant_file, max_days_since_onset = 6) {
 
   variants_freq <- tabyl(variants, dose_variant) %>%
     filter(n > 1000) %>%
-    select(dose_variant)
+    dplyr::select(dose_variant)
 
   variants <- variants %>%
     inner_join(variants_freq, by = "dose_variant") %>%
-    select(source_lab, week_onset, days_since_onset, sex, age, age_group,
-           reinfection, dose, variant, ivdr, phase, ct = p2ch2cq)
+    dplyr::select(source_lab, week_onset, days_since_onset, sex, age, age_group,
+                  reinfection, dose, variant, ivdr, phase, ct = p2ch2cq)
 }
