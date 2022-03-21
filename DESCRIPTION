@@ -1,0 +1,38 @@
+Package: covid19-ct-pillar2
+Title: Viral loads in symptomatic Covid-19 cases in England
+Version: 0.0.1
+Authors@R:
+    c(person(given = "Sebastian",
+             family = "Funk",
+             role = c("aut"),
+             email = "sebastian.funk@lshtm.ac.uk",
+             comment = c(ORCID = "0000-0002-2842-3406")),
+      person(given = "Sam",
+             family = "Abbott",
+             role = c("aut", "cre"),
+             email = "sam.abbott@lshtm.ac.uk",
+             comment = c(ORCID = "0000-0001-8057-8037")),
+      )
+Description: Analyse Ct values as a proxy for viral loads in symptomatic
+Pillar 2 cases in England
+License: MIT
+Imports:
+    forcats,
+    dplyr,
+    janitor,
+    socialmixr,
+    lubridate,
+    mgcv,
+    tidyr,
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Suggests:
+    rmarkdown,
+    readr,
+    ggplot2,
+    cowplot,
+    scales,
+    kableExtra,
+    tibble
