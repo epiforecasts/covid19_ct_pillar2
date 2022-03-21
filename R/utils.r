@@ -11,6 +11,7 @@ estimate_means <- function(x, by) {
   tb <- tibble(
     var = names(means),
     estimate = means,
+    se = se,
     lower = means - 2 * se,
     upper = means + 2 * se
   )
