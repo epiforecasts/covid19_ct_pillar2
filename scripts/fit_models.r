@@ -15,14 +15,13 @@ ct <- load_data(ct_file)
 suppressWarnings(dir.create(here::here("output")))
 
 ## GAM fit
-fit <- bam(ct ~
+system.time(fit <- bam(ct ~
              0 +
              ivdr +
-             s(age) +
-             s(sex, bs = 're') +
-             s(source_lab, bs = 're') +
-             s(days_since_onset, by = ivdr, k = 7),
-           data = ct, family = Gamma(link = "identity"))
+             sex +
+             source_lab +
+             te(days_since_onset, age, by = ivdr, k = c(7, 10)),
+           data = ct, family = Gamma(link = "identity")))
 saveRDS(fit, fit_file)
 
 ## means estimates
