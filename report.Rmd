@@ -102,7 +102,7 @@ The shape of this so-called viral load curve has been found to vary by age, infe
 At the population level this can translate to population-level changes over time [@kissler2021;@walker2021].
 
 Because of these properties, there is value in continuing to characterise viral loads in those infected with SARS-CoV-2 and monitor changes therein with changing immunity status due to vaccination or prior infection, as well as with new emerging variants.
-Here, we analyse viral loads in more than 3 million symptomatic COVID-19 cases in England since the start of the pandemic, as well as the degree to which individual viral loads can be described as a function of known individual characteristics such as age and vaccine status.
+Here, we analyse viral loads in more than 3 million symptomatic COVID-19 cases in England since the start of the pandemic, as well as the degree to which individual viral loads can be predicted as a function of known individual characteristics such as age and vaccine status.
 
 # Methods
 
@@ -127,8 +127,8 @@ var_ass <- tibble(
     "Specimen date < 2021-01-01 AND S-gene positive",
     "Specimen date < 2021-04-01 AND S-gene negative",
     "2021-05-01 <= Specimen date < 2022-01-01 AND S-gene positive",
-    "2021-12-01 <= Specimen date AND S-gene negative", 
-    "2022-02-02 >= Specimen date AND S-gene positive"
+    "Specimen date >= 2021-12-01 AND S-gene negative",
+    "Specimen date >= 2022-02-02 AND S-gene positive"
   )
 )
 
@@ -242,7 +242,7 @@ With all variants, evidence of a prior infection reduced the estimated mean vira
 The number of vaccine doses, on the other hand, had less of a discernible effect, with the most discernible effect a reduction in viral loads for those with three doses of vaccination and infected with Delta (Figure \@ref(fig:means)C).
 
 Viral loads changed over time, largely in response to a change in the dominant variant but also whilst one variant was dominating.
-Modelling viral loads as a function of time since symptom onset, age, evidence of prior infection and number of vaccine doses yields poor predictions at the individual level (deviance explained: `r summary(fit)$dev.expl * 100`%) yet broadly recovers the time-trends in mean viral loads (Figure \@ref(fig:time-means)A-B).
+Modelling viral loads as a function of time since symptom onset, age, evidence of prior infection and number of vaccine doses yields poor predictions at the individual level (deviance explained: `r signif(summary(fit)$dev.expl * 100, 2)`%) yet broadly recovers the time-trends in mean viral loads (Figure \@ref(fig:time-means)A-B).
 That said, it appears to do so mostly by capturing the changes with different variants, whilst being less able to recover trends in viral loads whilst a variant is dominating.
 Part of this may be explained by epidemic phase bias, as symptom onset follows infection and therefore, during periods of exponentially increasing infections, is biased towards more recent infections [@seaman2021,@hay2021].
 Indeed we observe higher viral loads during periods of increase than during periods of decrease for all variants (Figure \@ref(fig:time-means)C), and the trajectory of ct values compared to the case trajectories that this can explain differences between predicted and observed ct values.
@@ -251,7 +251,8 @@ Indeed we observe higher viral loads during periods of increase than during peri
 ```{r time-means, echo = FALSE, fig.cap = "(A) Mean ct values (points and solid lines) estimated independently for each week and variant, with associated 90% confidence intervals as bars; means of modelled ct values (dashed lines) and their interquartile ranges (ribbons). (B) Case numbers identified as being due to a give variant.", fig.width = 10}
 time_means <- means[["time_means"]] %>%
   mutate(week_onset = as.Date(sub("^var", "", week_onset))) %>%
-  filter(upper - lower < 0.5)
+  filter(upper - lower < 0.5) %>%
+  filter(week_onset < max(week_onset))
 weekly_predictions <- pred_ct %>%
   group_by(week_onset, variant) %>%
   summarise(estimate = mean(prediction),
