@@ -14,7 +14,7 @@ Authors@R:
              comment = c(ORCID = "0000-0001-8057-8037")),
       )
 Description: Analyse Ct values as a proxy for viral loads in symptomatic
-Pillar 2 cases in England
+             Pillar 2 cases in England.
 License: MIT
 Imports:
     forcats,
@@ -23,7 +23,7 @@ Imports:
     socialmixr,
     lubridate,
     mgcv,
-    tidyr,
+    tidyr
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

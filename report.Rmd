@@ -37,7 +37,7 @@ library(kableExtra)
 library(lubridate)
 library(tibble)
 library(dplyr)
-options(knitr.kable.NA = '') 
+options(knitr.kable.NA = '')
 
 source(here::here("R", "filenames.r"))
 ```
