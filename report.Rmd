@@ -94,13 +94,15 @@ pred_ct <- ct %>%
 
 ## Introduction
 
-Since the start of the pandemic SARS-CoV-2 infection has most commonly been confirmed using reverse transcriptase polymerase chain reaction (RT-PCR), with results translated into a binary positive/negative result. Previous studies have found that there is additional useful information in the level of the cycle threshold (CT value) of positive cases. Here we characterise variation in CT values as a proxy for viral loads in Pillar 2 COVID-19 cases in England.
+Since the start of the pandemic SARS-CoV-2 infection has most commonly been confirmed using reverse transcriptase polymerase chain reaction (RT-PCR), with results translated into a binary positive/negative result. Previous studies have found that there is additional useful information in the level of the cycle threshold (CT value) of positive cases. Here we characterise variation in CT values as a proxy for viral loads in Pillar 2 COVID-19 cases in England with the aim of better quantifying the utility of such data.
 
 ## Methods
 
-We used individual N gene CT values from symptomatic pillar 2 cases in England who self-reported symptom onset status, and for whome age, reinfection status, variant status, and the number of vaccines recieved was available. Those with a positive test result more than 6 days after their reported symptom onset were excluded to mitigate the potential impact of recall bias.
+We used individual N gene Ct values from symptomatic pillar 2 cases in England who self-reported symptom onset status, and for whome age, reinfection status, variant status, and the number of vaccines recieved was available. Those with a positive test result more than 6 days after their reported symptom onset were excluded to mitigate the potential impact of recall bias. We used a generalised additive model, to estimate Ct values empirical mean Ct values for each strata of interest independently as well as to predict Ct values using a model that adjusted for a range of demographic and epidemiological covariates jointly. We present empirical Ct values and compare them to predicted mean Ct values.
 
 ## Results
+
+We found that mean Ct values varied by vaccine status, and reinfection status with the number of vaccine doses having little apparent effect. Modelling Ct values as a smooth function of time since onset and other variables struggled to reproduce the individual variation in the data but did match the population level variation relatively well with this being apparently dominated by large differences between variants.  Other variation over time was also captured to some degree though their remained several periods where the model could not capture the empirical means with a potential explanation being epidemic phase bias.
 
 ## Conclusions
 
@@ -119,7 +121,7 @@ These population-level changes have been shown to useful as a surveillance tool 
 
 Because of these properties, there is value in continuing to characterise viral loads in those infected with SARS-CoV-2 and monitor changes therein with changing immunity status due to vaccination or prior infection, as well as with new emerging variants.
 Currently studies that seek to do this have been limited to non-surveillance datasets where multiple PCR results per person are available, cross-sectional studies, or simple summary statitics of Ct values generated via surveillance of those seeking tests.
-Here, we analyse Ct values as a proxy viral loads in more than 3 million symptomatic COVID-19 cases identified through routine testing in England since the start of the pandemic, as well as the degree to which individual viral loads can be predicted as a function of known individual characteristics such as age, vaccine status, and variant status. 
+Here, we analyse Ct values as a proxy viral loads in more than 3 million symptomatic COVID-19 cases identified through routine testing in England since the start of the pandemic, as well as the degree to which individual viral loads can be predicted as a function of known individual characteristics such as age, vaccine status, and variant status. We aim begin to quantify the utility of such data
 
 # Methods
 
@@ -181,7 +183,11 @@ ct_counts %>%
 
 ## Model
 
-We modelled Ct values $y$ for nucleocapsid protein (N) as target gene and assumed an additive relationship between covariates with gamma distributed errors using a generalised addititive modelling framework [@mgcv]. We used a gamma observation model based on visual inspection of the underling data and the identification of a right skew with a moderately heavy tail. We assumed the same error model across all covariates. Additive effects were used based on the assumption that individual covariates had independent effects on Ct value and hence viral load. We adjusted mean Ct values ($\mu$) for sex, source laboratory, number of vaccines, variant status, and reinfection status (with number of vaccines, variant status, and reinfection status being treated as a composite variable as previously outlined) with fixed effects. We modelled time since symptom onset and age and the interaction of these effects smoothly using a 2-dimensional tensor product smooth (using a basis dimension of 7 and 10 respectively), estimated separately for each combination of variant, number of vaccine doses, and reinfection status [@mgcv]. Mathematically this can be represented as follows:
+We modelled Ct values $y$ for nucleocapsid protein (N) as target gene and assumed an additive relationship between covariates with gamma distributed errors using a generalised addititive modelling framework [@mgcv]. We used a gamma observation model based on visual inspection of the underling data and the identification of a right skew with a moderately heavy tail. We assumed the same error model across all covariates. Additive effects were used based on the assumption that individual covariates had independent effects on Ct value and hence viral load. 
+
+We first fit a simple generalised linear model with fixed effects for each day since onset, reinfection status, nuumber of vaccine doses, and variant status leveraging our large sample size. From this model we then estimated mean Ct values for each interaction level along with 95% credible intervals.
+
+We then fit a more flexible generalised additive model adjusting mean Ct values ($\mu$) for sex, source laboratory, number of vaccines, variant status, and reinfection status (with number of vaccines, variant status, and reinfection status being treated as a composite variable as previously outlined) with fixed effects. We modelled time since symptom onset and age and the interaction of these effects smoothly using a 2-dimensional tensor product smooth (using a basis dimension of 7 and 10 respectively), estimated separately for each combination of variant, number of vaccine doses, and reinfection status [@mgcv]. Mathematically this can be represented as follows:
 
 \begin{align}
 y_i \sim &~\mathrm{Gamma}(\mathrm{mean} = \mu_i, \mathrm{shape} = k) \\
@@ -192,6 +198,10 @@ y_i \sim &~\mathrm{Gamma}(\mathrm{mean} = \mu_i, \mathrm{shape} = k) \\
 \end{align}
 
 where $\mathrm{VDR}_i$ indicates the variant, number of vaccine doses received and reinfection status (known reinfection or no record of prior infection) of a given individual, $Sex$ their sex, $Lab$ the laboratory where the Ct values where measured, and $f_\mathrm{Onset,Age}$ a 2-dimensional tensor product smooth varying as a function of days since symptom onset and age, estimated separately for each combination of variant, number of doses and reinfection status.
+
+## Statistical inference
+
+We reported upper and lower bounds (based on a 95% credible interval) of the mean Ct values (based on plus/minus two standard deviations from the mean) as estimated using our simple generalised linear model, for each day since onset, number of vaccine doses, variant status, and reinfection status unadjusted for age or laboratory status. We then report predicted mean Ct values from our generalised additive model for each week along with their interquartile range compared to estimated reported mean Ct values as estimated using a model that treated each data stratification independently (along with the 95% credible interval) stratified by variant status. Alongside this we presented case numbers per variant and estimated mean Ct values by days since onset, variant status, and epidemic phase (increasing or declining).
 
 ## Implementation
 
@@ -204,7 +214,7 @@ Mean viral loads in the unvaccinated varied as a function of the number of days 
 Viral loads at peak were highest for Delta with, however, an earlier decline as a function of time since symptom onset compared to Alpha, the variant with the second highest viral load.
 Viral loads from Omicron infections declined slower as a function of time since symptom onset than from any of the other variants.
 
-```{r means, echo = FALSE, fig.cap = "Estimated mean Ct values in (A) unvaccinated patients without any known prior infection, in unvaccinated patients as a function of whether there was knowledge of any prior infection (B), and in patients without any known prior infection as a function of the number of vaccine doses (C). Bands indicate estimated 90% confidence intervals of the means.", fig.width = 12}
+```{r means, echo = FALSE, fig.cap = "Estimated mean Ct values in (A) unvaccinated patients without any known prior infection, in unvaccinated patients as a function of whether there was knowledge of any prior infection (B), and in patients without any known prior infection as a function of the number of vaccine doses (C). Bands indicate the 95% credible interval for the mean Ct value", fig.width = 12}
 p1 <- ggplot(means[["means"]] %>%
             filter(dose == "dose0",
                    reinfection == "no known previous infection"),
@@ -262,8 +272,10 @@ The number of vaccine doses, on the other hand, had less of a discernible effect
 Viral loads changed over time, largely in response to a change in the dominant variant but also whilst one variant was dominating.
 Modelling viral loads as a function of time since symptom onset, age, evidence of prior infection and number of vaccine doses yields poor predictions at the individual level (deviance explained: `r signif(summary(fit)$dev.expl * 100, 2)`%) yet broadly recovers the time-trends in mean viral loads (Figure \@ref(fig:time-means)A-B).
 That said, it appears to do so mostly by capturing the changes with different variants, whilst being less able to recover trends in viral loads whilst a variant is dominating.
-Part of this may be explained by epidemic phase bias, as symptom onset follows infection and therefore, during periods of exponentially increasing infections, is biased towards more recent infections [@seaman2021,@hay2021].
-Indeed we observe higher viral loads during periods of increase than during periods of decrease for all variants (Figure \@ref(fig:time-means)C), and the trajectory of ct values compared to the case trajectories that this can explain differences between predicted and observed ct values.
+Part of this may be explained by epidemic phase bias, as symptom onset follows infection and therefore, during periods of exponentially increasing infections, is biased towards more recent infections [@seaman2021,@hay2021]. T
+This would imply that when the model underestimates CT values for a given variant then infections are likely to be increasing and when it overestimates CT values for a given variant they are likely to be decreasing. 
+Indeed we observe higher viral loads during periods of increase than during periods of decrease for all variants (Figure \@ref(fig:time-means)C).
+The observed trajectroy of ct values compared to the case trajectories also matches this interpretation of the mechanism between predicted and observed Ct values.
 
 
 ```{r time-means, echo = FALSE, fig.cap = "(A) Mean ct values (points and solid lines) estimated independently for each week and variant, with associated 90% confidence intervals as bars; means of modelled ct values (dashed lines) and their interquartile ranges (ribbons). (B) Case numbers identified as being due to a give variant.", fig.width = 10}
