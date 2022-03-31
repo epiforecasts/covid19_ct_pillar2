@@ -106,6 +106,7 @@ We found that mean Ct values varied by vaccine status, and reinfection status wi
 
 ## Conclusions
 
+Analysising a large dataset of routine Ct values from symptom COVID-19 cases in England we found variation based on time since symptom onset, vaccine status, age, and variant. Ct values were highest 1-3 days after symptom onset and differed most due to variant status. We found little correlation between previously estimated differences in variant severity and Ct values indicating that these are potenitally motivated by factors other than viral load. We found evidence that a model adjusting for a range of covariates could explain population level variation meaningful but did poorly when incidence was changing. This indicates the utility of Ct values from this data source as a tool for surveillance, potentially without some of the biases of aggregated positive counts.
 
 # Introduction
 
@@ -117,7 +118,7 @@ They vary widely between individuals [@challenger2022].
 Part of this variation can be explained by changes in viral load over the course of infection in individuals [@kissler2021].
 The shape of this so-called viral load curve has been found to vary by age, infecting variant and vaccination status [@jones2021;@kissler2021b;@hay2022].
 At the population level this can translate to population-level changes over time [@kissler2021;@walker2021]. 
-These population-level changes have been shown to useful as a surveillance tool as they allow better recovery of the underlying transmission process than aggregate counts of positive cases alone [@Hay2021-yd]. 
+These population-level changes have been shown to useful as a surveillance tool as they allow better recovery of the underlying transmission process than aggregate counts of positive cases alone [@hay2021]. 
 
 Because of these properties, there is value in continuing to characterise viral loads in those infected with SARS-CoV-2 and monitor changes therein with changing immunity status due to vaccination or prior infection, as well as with new emerging variants.
 Currently studies that seek to do this have been limited to non-surveillance datasets where multiple PCR results per person are available, cross-sectional studies, or simple summary statitics of Ct values generated via surveillance of those seeking tests.
@@ -183,11 +184,9 @@ ct_counts %>%
 
 ## Model
 
-We modelled Ct values $y$ for nucleocapsid protein (N) as target gene and assumed an additive relationship between covariates with gamma distributed errors using a generalised addititive modelling framework [@mgcv]. We used a gamma observation model based on visual inspection of the underling data and the identification of a right skew with a moderately heavy tail. We assumed the same error model across all covariates. Additive effects were used based on the assumption that individual covariates had independent effects on Ct value and hence viral load. 
+We first fit a simple gaussian generalised linear model with fixed effects for each day since onset, reinfection status, nuumber of vaccine doses, and variant status. From this model we then estimated empirical mean Ct values for each interaction level along with 95% credible intervals.
 
-We first fit a simple generalised linear model with fixed effects for each day since onset, reinfection status, nuumber of vaccine doses, and variant status leveraging our large sample size. From this model we then estimated mean Ct values for each interaction level along with 95% credible intervals.
-
-We then fit a more flexible generalised additive model adjusting mean Ct values ($\mu$) for sex, source laboratory, number of vaccines, variant status, and reinfection status (with number of vaccines, variant status, and reinfection status being treated as a composite variable as previously outlined) with fixed effects. We modelled time since symptom onset and age and the interaction of these effects smoothly using a 2-dimensional tensor product smooth (using a basis dimension of 7 and 10 respectively), estimated separately for each combination of variant, number of vaccine doses, and reinfection status [@mgcv]. Mathematically this can be represented as follows:
+We then modelled Ct values $y$ for nucleocapsid protein (N) as target gene and assumed an additive relationship between covariates with gamma distributed errors using a generalised addititive modelling framework [@mgcv]. We used a gamma observation model based on visual inspection of the underling data and the identification of a right skew with a moderately heavy tail. We assumed the same error model across all covariates. Additive effects were used based on the assumption that individual covariates had independent effects on Ct value and hence viral load. We adjusted mean Ct values ($\mu$) for sex, source laboratory, number of vaccines, variant status, and reinfection status (with number of vaccines, variant status, and reinfection status being treated as a composite variable as previously outlined) with fixed effects. We modelled time since symptom onset and age and the interaction of these effects smoothly using a 2-dimensional tensor product smooth (using a basis dimension of 7 and 10 respectively), estimated separately for each combination of variant, number of vaccine doses, and reinfection status [@mgcv]. Mathematically this can be represented as follows:
 
 \begin{align}
 y_i \sim &~\mathrm{Gamma}(\mathrm{mean} = \mu_i, \mathrm{shape} = k) \\
@@ -272,10 +271,10 @@ The number of vaccine doses, on the other hand, had less of a discernible effect
 Viral loads changed over time, largely in response to a change in the dominant variant but also whilst one variant was dominating.
 Modelling viral loads as a function of time since symptom onset, age, evidence of prior infection and number of vaccine doses yields poor predictions at the individual level (deviance explained: `r signif(summary(fit)$dev.expl * 100, 2)`%) yet broadly recovers the time-trends in mean viral loads (Figure \@ref(fig:time-means)A-B).
 That said, it appears to do so mostly by capturing the changes with different variants, whilst being less able to recover trends in viral loads whilst a variant is dominating.
-Part of this may be explained by epidemic phase bias, as symptom onset follows infection and therefore, during periods of exponentially increasing infections, is biased towards more recent infections [@seaman2021,@hay2021]. T
+Part of this may be explained by epidemic phase bias, as symptom onset follows infection and therefore, during periods of exponentially increasing infections, is biased towards more recent infections [@seaman2021,@hay2021]. 
 This would imply that when the model underestimates CT values for a given variant then infections are likely to be increasing and when it overestimates CT values for a given variant they are likely to be decreasing. 
 Indeed we observe higher viral loads during periods of increase than during periods of decrease for all variants (Figure \@ref(fig:time-means)C).
-The observed trajectroy of ct values compared to the case trajectories also matches this interpretation of the mechanism between predicted and observed Ct values.
+The observed trajectory of Ct values compared to the case trajectories also matches this interpretation of the mechanism between predicted and observed Ct values.
 
 
 ```{r time-means, echo = FALSE, fig.cap = "(A) Mean ct values (points and solid lines) estimated independently for each week and variant, with associated 90% confidence intervals as bars; means of modelled ct values (dashed lines) and their interquartile ranges (ribbons). (B) Case numbers identified as being due to a give variant.", fig.width = 10}
@@ -354,7 +353,7 @@ print(p)
 
 # Discussion
 
-Analysing a large data set of Ct values in symptomatic COVID-19 cases in the UK, we found variation in viral load by time since symptom onset, vaccine and reinfection status, age and variant.
+Analysing a large data set of Ct values in symptomatic COVID-19 cases in England, we found variation in Ct values (and hence viral loads by proxy) by time since symptom onset, vaccine and reinfection status, age and variant.
 We found highest viral loads in those tested 1-3 days after symptom onset for each of the variants, including when considering variation by vaccination or reinfection status.
 We further found that the Alpha and Delta variants produced higher viral loads than wildtype and Omicron variants, and that both vaccination and prior infection appeared to reduce viral loads.
 
@@ -362,16 +361,16 @@ In comparing these results to observations made with other data sets, it is impo
 We only considered positive tests in symptomatic individuals as part of the so-called Pillar 2 testing in England, the vast majority of which would have been based on self-initiated testing at a community.
 Because of this, our data may preferentially reflect cases with symptoms that are both noticable enough to prompt individuals to get tested whilst not severe enough that the first test would happen in hospital, with age and other variables probably affecting the probability of getting tested as a function of viral load.
 Moreover, we did not have any information on why individuals would seek out a test only on day 5 or 6 of symptoms and whether this reflects a particular symptom trajectory such as from very mild to more severe, potentially with corresponding behaviour in the viral load trajectory.
-All that said, whilst these biases and the selection bias of Ct values less than 30 means our observed Ct values cannot be interpreted as samples of individual-level viral load trajectories as in previous work, their smooth behaviour which is broadly in line with that observed previously [@kissler2021;@jones2021], indicates that conclusions on broad trends may be valid.
+All that said, whilst these biases and the selection bias of Ct values less than 30 means our observed Ct values cannot be interpreted as samples of individual-level viral load trajectories as in previous work, their smooth behaviour which is broadly in line with that observed previously [@kissler2021;@jones2021], indicates that conclusions on broad trends may be valid and should be further investigated.
 
-Whilst it has previously been suggested that viral loads may be related to both severity and transmissibility, this does not appear translate into a relationship that would make it possible to infer these from observed viral loads.
+Whilst it has previously been suggested that viral loads may be related to both severity and transmissibility, this does not appear to translate into a relationship that would make it possible to infer these from observed viral loads with their being little apparent correlation between trends in  viral loads and estimated severity.
 If anything, the observed viral loads in our data set may relate to severity, previously observed to have been higher in Alpha and Delta than the previous or subsequent variants to date [@davies2021;@twohig2022], and lower than with Omicron [@nyberg2022].
 Delta and Alpha are also the variant with the highest viral loads we observed.
 The Omicron variant, on the other hand, which has shown a transmission advantage but decreased severity compared to other lineages [@pearson2021;@nyberg2022], shows significantly reduced viral loads.
 
 It has previously been suggested that viral loads may be a useful quantity to monitor as part of real-time surveillance of infectious disease dynamics [@hay2021].
 Our results show evidence of "epidemic phase bias", whereby a model taking into account relevant determinants of viral loads such as variant, age and variant and vaccination status underestimates viral loads at times of increasing case numbers and overestimates them at times of decreasing viral loads.
-This suggest future avenues of research whereby integrating Ct values into analysis of real-time dynamics, in particular at a time when community may have been scaled back and overall case numbers are sampled from a smaller proportion of the population, could improve 
+This suggest future avenues of research whereby integrating Ct values from routine surveillance sources into analysis of real-time dynamics, in particular at a time when community may have been scaled back and overall case numbers are sampled from a smaller proportion of the population, could improve 
 the accuracy and timeliness of estimates.
 
 # References
