@@ -134,6 +134,7 @@ We assigned variant status based on either genetic confirmation or, where no gen
 Observations with missing data for any of the extracted variables were dropped from further analysis.
 Combinations of number of vaccine doses and variants with fewer than 1000 observations were then dropped from the extracted data, leaving `r comma(nrow(ct))` unique Ct values (Table \@ref(tab:data)).
 We combined variant status, number of vaccines recived, and reinfection status (known reinfection or no record of prior infection) into a single composite variable to streamline the modelling process.
+We defined epidemic phase for each variant such that the Alpha variant was defined to be increasing in December 2020 and decreasing in January 2021, the Delta variant was defined to be increasing in June 2021 and decreasingin December 2021, and the Omicron  variant was defined to be increasing in December 2021 and decreasing in January 2022.
 
 ```{r variant-assignments, echo = FALSE}
 var_ass <- tibble(
