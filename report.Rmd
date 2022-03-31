@@ -86,23 +86,38 @@ disp <- MASS::gamma.dispersion(fit)
 
 pred_ct <- ct %>%
   mutate(prediction = as.vector(pred), mean = mean(ct),
-         obs = rgamma(n = n(), shape = 1/disp, scale = prediction * disp)) %>%
+         obs = rgamma(n = n(), shape = 1 / disp, scale = prediction * disp)) %>%
   select(week_onset, variant, prediction, obs)
 ```
+
+# Abstract
+
+## Introduction
+
+Since the start of the pandemic SARS-CoV-2 infection has most commonly been confirmed using reverse transcriptase polymerase chain reaction (RT-PCR), with results translated into a binary positive/negative result. Previous studies have found that there is additional useful information in the level of the cycle threshold (CT value) of positive cases. Here we characterise variation in CT values as a proxy for viral loads in Pillar 2 COVID-19 cases in England.
+
+## Methods
+
+## Results
+
+## Conclusions
+
 
 # Introduction
 
 Since the start of the SARS-CoV-2 pandemic in late 2019, hundreds of millions of people have been confirmed as infected with the virus.
 Confirmation of infection has most commonly been done by reverse transcriptase polymerase chain reaction (RT-PCR), with test results indicated as positive if the cycle threshold (Ct) is below a certain level, negative if it is not, and sometimes as ambiguous in an intermediate range.
-However, the level of the cycle threshold (the Ct value) of test positive cases contains additional information on the infection.
+However, the level of the cycle threshold (the Ct value) of test positive cases contains additional information on the infection with them being a proxy for viral load.
 Viral loads can be an indicator of severity and transmissibility [@fajnzylber2020;@knudtzen2021;@lee2021;@lyngse2021].
 They vary widely between individuals [@challenger2022].
 Part of this variation can be explained by changes in viral load over the course of infection in individuals [@kissler2021].
 The shape of this so-called viral load curve has been found to vary by age, infecting variant and vaccination status [@jones2021;@kissler2021b;@hay2022].
-At the population level this can translate to population-level changes over time [@kissler2021;@walker2021].
+At the population level this can translate to population-level changes over time [@kissler2021;@walker2021]. 
+These population-level changes have been shown to useful as a surveillance tool as they allow better recovery of the underlying transmission process than aggregate counts of positive cases alone [@Hay2021-yd]. 
 
 Because of these properties, there is value in continuing to characterise viral loads in those infected with SARS-CoV-2 and monitor changes therein with changing immunity status due to vaccination or prior infection, as well as with new emerging variants.
-Here, we analyse viral loads in more than 3 million symptomatic COVID-19 cases in England since the start of the pandemic, as well as the degree to which individual viral loads can be predicted as a function of known individual characteristics such as age and vaccine status.
+Currently studies that seek to do this have been limited to non-surveillance datasets where multiple PCR results per person are available, cross-sectional studies, or simple summary statitics of CTs generated via surveillance of those seeking tests.
+Here, we analyse CTs as a proxy viral loads in more than 3 million symptomatic COVID-19 cases identified through routine testing in England since the start of the pandemic, as well as the degree to which individual viral loads can be predicted as a function of known individual characteristics such as age, vaccine status, and variant status. 
 
 # Methods
 

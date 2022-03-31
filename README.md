@@ -31,4 +31,4 @@ remotes::install_dev_deps()
 
 ## Reproducing our results
 
-Once data access has been obtained run `scripts/fit_model.r`. Note that fitting the model may take up to 10 hours on a fast multi-core machine.
+Once data access has been obtained run `scripts/fit_model.r`. Note that fitting the model may take up to 10 hours on a fast multi-core machine. Alternatively, simple render `report.Rmd` and this script will be called if results are not present.
