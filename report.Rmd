@@ -98,6 +98,8 @@ Since the start of the pandemic SARS-CoV-2 infection has most commonly been conf
 
 ## Methods
 
+We used individual N gene CT values from symptomatic pillar 2 cases in England who self-reported symptom onset status, and for whome age, reinfection status, variant status, and the number of vaccines recieved was available. Those with a positive test result more than 6 days after their reported symptom onset were excluded to mitigate the potential impact of recall bias.
+
 ## Results
 
 ## Conclusions
@@ -116,18 +118,19 @@ At the population level this can translate to population-level changes over time
 These population-level changes have been shown to useful as a surveillance tool as they allow better recovery of the underlying transmission process than aggregate counts of positive cases alone [@Hay2021-yd]. 
 
 Because of these properties, there is value in continuing to characterise viral loads in those infected with SARS-CoV-2 and monitor changes therein with changing immunity status due to vaccination or prior infection, as well as with new emerging variants.
-Currently studies that seek to do this have been limited to non-surveillance datasets where multiple PCR results per person are available, cross-sectional studies, or simple summary statitics of CTs generated via surveillance of those seeking tests.
-Here, we analyse CTs as a proxy viral loads in more than 3 million symptomatic COVID-19 cases identified through routine testing in England since the start of the pandemic, as well as the degree to which individual viral loads can be predicted as a function of known individual characteristics such as age, vaccine status, and variant status. 
+Currently studies that seek to do this have been limited to non-surveillance datasets where multiple PCR results per person are available, cross-sectional studies, or simple summary statitics of Ct values generated via surveillance of those seeking tests.
+Here, we analyse Ct values as a proxy viral loads in more than 3 million symptomatic COVID-19 cases identified through routine testing in England since the start of the pandemic, as well as the degree to which individual viral loads can be predicted as a function of known individual characteristics such as age, vaccine status, and variant status. 
 
 # Methods
 
 ## Data
 
-We used individual N gene Ct values from symptomatic pillar 2 cases (i.e., mostly from self-initiated testing from individuals presenting with symptoms) in England with symptom onset during or after the week beginning `r min(ct$week_onset)` alongside data on the week of symptom onset, sex, age, reinfection status, number of doses of vaccination received.
-We only included those with a positive test up to 6 days following symptom onset to avoid issues with recall.
+We used individual N gene Ct values from symptomatic pillar 2 cases (i.e., mostly from self-initiated testing from individuals presenting with symptoms) in England with symptom onset during or after the week beginning `r min(ct$week_onset)` alongside data on the week of symptom onset, sex, source laboratory, age, reinfection status, and number of doses of vaccination received.
+We only included those with a positive test up to 6 days following symptom onset to avoid issues with recall bias.
 We assigned variant status based on either genetic confirmation or, where no genotyping or sequencing result was available, timing and S-gene target failure (SGTF) status (Table \@ref(tab:variant-assignments)).
 Observations with missing data for any of the extracted variables were dropped from further analysis.
-Combinations of number of vaccine doses and variants with fewer than 1000 observations were then dropped from the extracted data, leaving `r nrow(ct)` unique Ct values (Table \@ref(tab:data)).
+Combinations of number of vaccine doses and variants with fewer than 1000 observations were then dropped from the extracted data, leaving `r comma(nrow(ct))` unique Ct values (Table \@ref(tab:data)).
+We combined variant status, number of vaccines recived, and reinfection status (known reinfection or no record of prior infection) into a single composite variable to streamline the modelling process.
 
 ```{r variant-assignments, echo = FALSE}
 var_ass <- tibble(
@@ -171,14 +174,14 @@ ct_counts %>%
     caption = paste0(
       "Number of individual Ct values for each combination of ",
       "variant and vaccine doses"),
-    booktabs = TRUE, 
+    booktabs = TRUE,
     format.args = list(big.mark = ",")) %>%
   kable_styling(latex_options = "striped")
 ```
 
 ## Model
 
-We modelled Ct values $y$ for nucleocapsid protein (N) as target gene and assumed an additive relationship between covariates with gamma distributed errors. All covariates for mean Ct values ($\mu$) were then modelled as fixed effects with the effect of variants and vaccines being modelled separately for each age group and combined into a group level effect. Interactions between days from symptom onset to test and all other covariates were also included, again as fixed effects. Mathematically this can be represented as follows:
+We modelled Ct values $y$ for nucleocapsid protein (N) as target gene and assumed an additive relationship between covariates with gamma distributed errors using a generalised addititive modelling framework [@mgcv]. We used a gamma observation model based on visual inspection of the underling data and the identification of a right skew with a moderately heavy tail. We assumed the same error model across all covariates. Additive effects were used based on the assumption that individual covariates had independent effects on Ct value and hence viral load. We adjusted mean Ct values ($\mu$) for sex, source laboratory, number of vaccines, variant status, and reinfection status (with number of vaccines, variant status, and reinfection status being treated as a composite variable as previously outlined) with fixed effects. We modelled time since symptom onset and age and the interaction of these effects smoothly using a 2-dimensional tensor product smooth (using a basis dimension of 7 and 10 respectively), estimated separately for each combination of variant, number of vaccine doses, and reinfection status [@mgcv]. Mathematically this can be represented as follows:
 
 \begin{align}
 y_i \sim &~\mathrm{Gamma}(\mathrm{mean} = \mu_i, \mathrm{shape} = k) \\
@@ -188,7 +191,7 @@ y_i \sim &~\mathrm{Gamma}(\mathrm{mean} = \mu_i, \mathrm{shape} = k) \\
     f_{\mathrm{Onset, Age}}(\mathrm{Onset}_i, \mathrm{Age}_i, \mathrm{VDR}_i)
 \end{align}
 
-where $\mathrm{VDR}_i$ indicates the variant, number of vaccine doses received and reinfection status (known reinfection or no record of prior infection) of a given individual, $s$ their sex, $l$ the laboratory where the Ct values where measured, and $f_\mathrm{Onset,Age}$ a 2-dimensional tensor product smooth varying as a function of days since symptom onset and age, estimated separately for each combination of variant, number of doses and reinfection status.
+where $\mathrm{VDR}_i$ indicates the variant, number of vaccine doses received and reinfection status (known reinfection or no record of prior infection) of a given individual, $Sex$ their sex, $Lab$ the laboratory where the Ct values where measured, and $f_\mathrm{Onset,Age}$ a 2-dimensional tensor product smooth varying as a function of days since symptom onset and age, estimated separately for each combination of variant, number of doses and reinfection status.
 
 ## Implementation
 
