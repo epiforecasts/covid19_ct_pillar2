@@ -19,7 +19,7 @@ Folder | Purpose
 
 ## Obtaining data
 
-The data used in this repository is currently not publicly available.
+The Pillar II surveillance data used in this repository is currently not publicly available. Apply to ? for access.
 
 ## Dependencies
 
@@ -28,3 +28,7 @@ All dependencies can be installed using the following,
 ```{r}
 remotes::install_dev_deps()
 ```
+
+## Reproducing our results
+
+Once data access has been obtained run `scripts/fit_model.r`. Note that fitting the model may take up to 10 hours on a fast multi-core machine.
