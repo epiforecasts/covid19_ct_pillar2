@@ -19,7 +19,7 @@ Folder | Purpose
 
 ## Obtaining data
 
-The Pillar II surveillance data used in this repository is currently not publicly available. Apply to ? for access.
+The Pillar 2 surveillance data used in this repository is currently not publicly available. Access has been provided by the UK Health Security Agency (UKHSA) through the Scientific Pandemic Influenza Group on Modelling, Operational sub-group (SPI-M-O) for the Scientific Advisory Group for Emergencies (SAGE), where this work was first presented.
 
 ## Dependencies
 
