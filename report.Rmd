@@ -1,7 +1,7 @@
 ---
 title: "Viral loads in symptomatic Covid-19 cases in England"
 author : Sebastian Funk, Sam Abbott
-date: "`r format(Sys.Date(), format = '%B %d, %Y')` - WORK IN PROGRESS DRAFT"
+date: "`r format(Sys.Date(), format = '%B %d, %Y')` - WORK IN PROGRESS PREPRINT"
 bibliography: references.bib
 csl: https://raw.githubusercontent.com/citation-style-language/styles/master/apa.csl
 header-includes:
@@ -198,7 +198,7 @@ y_i \sim &~\mathrm{Gamma}(\mathrm{mean} = \mu_i, \mathrm{shape} = k) \\
     f_{\mathrm{Onset, Age}}(\mathrm{Onset}_i, \mathrm{Age}_i, \mathrm{VDR}_i)
 \end{align}
 
-where $\mathrm{VDR}_i$ indicates the variant, number of vaccine doses received and reinfection status (known reinfection or no record of prior infection) of a given individual, $\mathrm{Sex}$ their sex, $Lab$ \mathrm{the} laboratory where the Ct values where measured, and $f_\mathrm{Onset,Age}$ a 2-dimensional tensor product smooth varying as a function of days since symptom onset and age, estimated separately for each combination of variant, number of doses and reinfection status.
+where $\mathrm{VDR}_i$ indicates the variant, number of vaccine doses received and reinfection status (known reinfection or no record of prior infection) of a given individual, $\mathrm{Sex}$ their sex, $\mathrm{Lab}$ laboratory where the Ct values where measured, and $f_\mathrm{Onset,Age}$ a 2-dimensional tensor product smooth varying as a function of days since symptom onset and age, estimated separately for each combination of variant, number of doses and reinfection status.
 
 ## Statistical inference
 
@@ -355,44 +355,6 @@ p <- plot_grid(p_left, p3, ncol = 2, labels = c("", "C"),
 print(p)
 ```
 
-```{r phase-bias, echo = FALSE, fig.cap = "tbc", fig.width = 10}
-residuals <- weekly_predictions |>
-  left_join(time_means, by = c("week_onset", "variant"),
-            suffix = c(".pred", ".data")) |>
-  mutate(estimate = estimate.pred - estimate.data,
-         lower = estimate.pred - lower.data,
-         upper = estimate.pred - upper.data)
-growth_by_variant <- weekly_counts |>
-  group_by(variant) |>
-  mutate(growth = c(diff(n) / head(n, -1), NA_real_)) |>
-  ungroup()
-res_vs_growth <- residuals |>
-  inner_join(growth_by_variant, by = c("week_onset", "variant"))
-  
- ggplot(res_vs_growth, aes(x = week_onset, y = estimate,
-                               ymin = lower, ymax = upper,
-                               colour = variant, fill = variant)) +
-  geom_line() +
-  geom_line(aes(y = growth), linetype = "dashed") +
-  geom_ribbon(colour = NA, alpha = 0.35) +
-  theme_minimal() +
-  scale_colour_brewer("", palette = "Set1") +
-  scale_fill_brewer("", palette = "Set1") +
-  theme(legend.position = "bottom") +
-  coord_cartesian(ylim = c(-1.5, 1.5))
-
-ggplot(res_vs_growth |>
-       filter(growth < 2.5),
-       aes(x = growth, y = estimate,
-           ymin = lower, ymax = upper,
-           colour = variant)) +
-  geom_point() +
-  theme_minimal() +
-  scale_colour_brewer("", palette = "Set1") +
-  theme(legend.position = "bottom") +
-  geom_smooth(method = "lm")
-```
-
 # Discussion
 
 Analysing a large data set of Ct values in symptomatic COVID-19 cases in England, we found variation in Ct values (and hence viral loads by proxy) by time since symptom onset, vaccine and reinfection status, age and variant.
@@ -405,9 +367,8 @@ Because of this, our data may preferentially reflect cases with symptoms that ar
 Moreover, we did not have any information on why individuals would seek out a test only on day 5 or 6 of symptoms and whether this reflects a particular symptom trajectory such as from very mild to more severe, potentially with corresponding behaviour in the viral load trajectory.
 All that said, whilst these biases and the selection bias of Ct values less than 30 means our observed Ct values cannot be interpreted as samples of individual-level viral load trajectories as in previous work, their smooth behaviour which is broadly in line with that observed previously [@kissler2021;@jones2021], indicates that conclusions on broad trends may be valid and should be further investigated.
 
-Whilst it has previously been suggested that viral loads may be related to both severity and transmissibility, this does not appear to translate into a relationship that would make it possible to infer these from observed viral loads with there being little clear correlation between trends in viral loads and estimated severity.
-If anything, the observed viral loads in our data set may relate to severity, previously observed to have been higher in Alpha and Delta than the previous or subsequent variants to date [@davies2021;@twohig2022], and lower than with Omicron [@nyberg2022].
-Delta and Alpha are also the variant with the highest viral loads we observed.
+It has previously been suggested that viral loads may be related to both severity and transmissibility, this does not appear to translate into a relationship that would make it possible to infer these directly and independently from observed viral loads.
+Of these two aspects viral loads in the data presented here appears more closely related to severity, previously observed to have been higher in Alpha and Delta than the previous or subsequent variants to date [@davies2021;@twohig2022], and lower than with Omicron [@nyberg2022], although the greater severity of Delta.
 The Omicron variant, on the other hand, which has shown a transmission advantage but decreased severity compared to other lineages [@pearson2021;@nyberg2022], shows significantly reduced viral loads.
 
 It has previously been suggested that viral loads may be a useful quantity to monitor as part of real-time surveillance of infectious disease dynamics [@hay2021].
