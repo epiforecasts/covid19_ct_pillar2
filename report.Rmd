@@ -37,6 +37,7 @@ library(kableExtra)
 library(lubridate)
 library(tibble)
 library(dplyr)
+library(mgcv)
 options(knitr.kable.NA = '')
 
 source(here::here("R", "filenames.r"))
@@ -277,7 +278,6 @@ Part of this may be explained by epidemic phase bias, as symptom onset follows i
 This would imply that when the model underestimates Ct values for a given variant then infections are likely to be increasing and when it overestimates Ct values for a given variant they are likely to be decreasing. 
 Indeed we observe higher viral loads during periods of increase than during periods of decrease for all variants (Figure \@ref(fig:time-means)C).
 The observed trajectory of Ct values compared to the case trajectories also matches this interpretation of the mechanism between predicted and observed Ct values.
-
 
 ```{r time-means, echo = FALSE, fig.cap = "(A) Mean ct values (points and solid lines) estimated independently for each week and variant, with associated 90% confidence intervals as bars; means of modelled ct values (dashed lines) and their interquartile ranges (ribbons). (B) Case numbers identified as being due to a give variant. (C) Ct values by epidemic phase for three variants in unvaccinated people without known previous infection.", fig.width = 10}
 time_means <- means[["time_means"]] %>%
