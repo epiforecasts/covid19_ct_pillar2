@@ -4,17 +4,17 @@ Version: 0.0.1
 Authors@R:
     c(person(given = "Sebastian",
              family = "Funk",
-             role = c("aut"),
+             role = c("aut", "cre"),
              email = "sebastian.funk@lshtm.ac.uk",
              comment = c(ORCID = "0000-0002-2842-3406")),
       person(given = "Sam",
              family = "Abbott",
-             role = c("aut", "cre"),
+             role = c("aut"),
              email = "sam.abbott@lshtm.ac.uk",
              comment = c(ORCID = "0000-0001-8057-8037")),
       )
 Description: Analyse Ct values as a proxy for viral loads in symptomatic
-Pillar 2 cases in England
+             Pillar 2 cases in England.
 License: MIT
 Imports:
     forcats,
@@ -23,7 +23,7 @@ Imports:
     socialmixr,
     lubridate,
     mgcv,
-    tidyr,
+    tidyr
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

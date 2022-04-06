@@ -1,6 +1,6 @@
 # Viral loads in symptomatic Covid-19 cases in England
 
-In this work we analyse Ct values as a proxy for viral loads in symptomatic Pillar 2 cases in England. We describe trends as a function of the number of days since symptom onset, age, variant, number of vaccine doses, reinfection status, and processing laboratory. We further try to recover time trends using a model that incorporates all these factors, and investigate the role of epidemic phase bias.
+In this work we analyse Ct values as a proxy for viral loads in symptomatic Pillar 2 cases in England. We describe trends as a function of the number of days since symptom onset, age, variant, number of vaccine doses, reinfection status, processing laboratory, and interactions between these variables. We further try to recover time trends using a model that incorporates all these factors, and investigate the role of epidemic phase bias.
 
 The analysis is implemented in `R` with heavy use of the `mgcv` package.
 
@@ -19,12 +19,16 @@ Folder | Purpose
 
 ## Obtaining data
 
-The data used in this repository is currently not publicly available.
+The Pillar 2 surveillance data used in this repository is currently not publicly available. Access has been provided by the UK Health Security Agency (UKHSA) through the Scientific Pandemic Influenza Group on Modelling, Operational sub-group (SPI-M-O) for the Scientific Advisory Group for Emergencies (SAGE), where this work was first presented.
 
 ## Dependencies
 
-All dependencies can be installed using the following, 
+All dependencies can be installed using the following,
 
 ```{r}
 remotes::install_dev_deps()
 ```
+
+## Reproducing our results
+
+Once data access has been obtained run `scripts/fit_model.r`. Note that fitting the model may take up to 10 hours on a fast multi-core machine. Alternatively, simple render `report.Rmd` and this script will be called if results are not present.
