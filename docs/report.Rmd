@@ -124,17 +124,17 @@ This indicates the utility of Ct values from this data source as a tool for surv
 
 Since the start of the SARS-CoV-2 pandemic in late 2019, hundreds of millions of people have been confirmed as infected with the virus.
 Confirmation of infection has most commonly been done by reverse transcriptase polymerase chain reaction (RT-PCR), with test results indicated as positive if the cycle threshold (Ct) is below a certain level, negative if it is not, and sometimes as ambiguous in an intermediate range.
-However, the level of the cycle threshold (the Ct value) as a proxy of viral load of test-positive cases contains additional information on the infection.
+However, the level of the cycle threshold (the Ct value) is a proxy of viral load of test-positive cases [@walker2021], which contains additional information on the infection.
 Viral loads can be an indicator of severity and transmissibility [@fajnzylber2020;@knudtzen2021;@lee2021;@lyngse2021].
 They vary widely between individuals [@challenger2022].
 Part of this variation can be explained by changes in viral load over the course of infection in individuals [@kissler2021].
 The shape of this so-called viral load curve has been found to vary by age, infecting variant and vaccination status [@jones2021;@kissler2021b;@hay2022].
 At the population level this can translate to changes in Ct values over time [@kissler2021;@walker2021]. 
-These population-level changes have been shown to useful as a surveillance tool as they allow better recovery of the underlying transmission process than aggregate counts of positive cases alone [@hay2021]. 
+These population-level changes have been shown potetnial as a surveillance tool as they allow better recovery of the underlying transmission process than aggregate counts of positive cases alone [@hay2021]. 
 
 Because of these properties, there is value in continuing to characterise viral loads in those infected with SARS-CoV-2 and monitor changes therein with changing immunity status due to vaccination or prior infection, as well as with new emerging variants.
 Currently studies that seek to do this have largely been limited to non-surveillance datasets where multiple PCR results per person are available, cross-sectional studies, or simple summary statitics of Ct values generated via surveillance of those seeking tests.
-Here, we analyse Ct values as a proxy viral loads in more than 3 million symptomatic COVID-19 cases identified through routine testing in England since relatively early in the pandemic, as well as the degree to which individual viral loads can be predicted as a function of known individual characteristics such as age, vaccine status, and variant status.
+Here, we analyse Ct values as a proxy viral loads in more than 3 million symptomatic COVID-19 cases identified through routine testing in England since relatively early in the pandemic, as well as the degree to which individual Ct values can be predicted as a function of known individual characteristics such as age, vaccine status, and variant status.
 The main aim of this work is to further investigate the utility of Ct values for understanding transmission dynamics in real time in conjunction with other metrics such as case numbers.
 
 # Methods
@@ -225,9 +225,9 @@ All code and data required to reproduce this analysis is available from https://
 
 # Results
 
-Mean viral loads in the unvaccinated varied as a function of the number of days since symptom onset, with a maximum at one (Delta) or two (all other variants) days after infection (Figure \@ref(fig:means)A).
-Viral loads at peak were highest for Delta with, however, an earlier decline as a function of time since symptom onset compared to Alpha, the variant with the second highest viral load.
-Viral loads from Omicron infections declined slower as a function of time since symptom onset than from any of the other variants.
+Mean viral loads as estimated from Ct values in the unvaccinated varied as a function of the number of days since symptom onset, with a maximum at one (Delta) or two (all other variants) days after infection (Figure \@ref(fig:means)A).
+Estimated viral loads at peak were highest for Delta with, however, an earlier decline as a function of time since symptom onset compared to Alpha, the variant with the second highest viral load.
+Estimated viral loads from Omicron infections declined slower as a function of time since symptom onset than from any of the other variants.
 
 ```{r means, echo = FALSE, fig.cap = "Estimated mean Ct values in (A) unvaccinated patients without any known prior infection, in unvaccinated patients as a function of whether there was knowledge of any prior infection (B), and in patients without any known prior infection as a function of the number of vaccine doses (C). Bands indicate the 95% credible interval for the mean Ct value", fig.width = 12}
 p1 <- ggplot(means[["means"]] %>%
@@ -284,12 +284,12 @@ print(p)
 With all variants, evidence of a prior infection reduced the estimated mean viral loads in those that with symptomatic infection (Figure \@ref(fig:means)B).
 The number of vaccine doses, on the other hand, had less of a discernible effect, with the most discernible effect a reduction in viral loads for those with three doses of vaccination and infected with Delta (Figure \@ref(fig:means)C).
 
-Viral loads changed over time, largely in response to a change in the dominant variant but also whilst one variant was dominating.
-Modelling viral loads as a function of time since symptom onset, age, evidence of prior infection and number of vaccine doses yields poor predictions at the individual level (deviance explained: `r signif(summary(fit)$dev.expl * 100, 2)`%) yet broadly recovers the time-trends in mean viral loads (Figure \@ref(fig:time-means)A-B).
-That said, it appears to do so mostly by capturing the changes with different variants, whilst being less able to recover trends in viral loads whilst a variant is dominating.
+Ct values changed over time, largely in response to a change in the dominant variant but also whilst one variant was dominating.
+Modelling Ct values as a function of time since symptom onset, age, evidence of prior infection and number of vaccine doses yields poor predictions at the individual level (deviance explained: `r signif(summary(fit)$dev.expl * 100, 2)`%) yet broadly recovers the time-trends in mean Ct values (Figure \@ref(fig:time-means)A-B).
+That said, it appears to do so mostly by capturing the changes with different variants, whilst being less able to recover trends in Ct values whilst a variant is dominating.
 Part of this may be explained by epidemic phase bias, as symptom onset follows infection and therefore, during periods of exponentially increasing infections, is biased towards more recent infections [@seaman2021,@hay2021]. 
 This would imply that when the model underestimates Ct values for a given variant then infections are likely to be increasing and when it overestimates Ct values for a given variant they are likely to be decreasing. 
-Indeed we observe higher viral loads during periods of increase than during periods of decrease for all variants (Figure \@ref(fig:time-means)C).
+Indeed we observe higher estimated viral loads during periods of increase than during periods of decrease for all variants (Figure \@ref(fig:time-means)C).
 The observed trajectory of Ct values compared to the case trajectories also matches this interpretation of the mechanism between predicted and observed Ct values.
 
 ```{r time-means, echo = FALSE, fig.cap = "(A) Mean ct values (points and solid lines) estimated independently for each week and variant, with associated 90% confidence intervals as bars; means of modelled ct values (dashed lines) and their interquartile ranges (ribbons). (B) Case numbers identified as being due to a give variant. (C) Ct values by epidemic phase for three variants in unvaccinated people without known previous infection.", fig.width = 10}
@@ -383,15 +383,17 @@ All that said, whilst these biases and the selection bias of Ct values less than
 It has previously been suggested that viral loads may be related to both severity and transmissibility, this does not appear to translate into a relationship that would make it possible to infer these directly and independently from observed viral loads.
 Of these two aspects viral loads in the data presented here appears more closely related to severity, previously observed to have been higher in Alpha and Delta than the previous or subsequent variants to date [@davies2021;@twohig2022], and lower than with Omicron [@nyberg2022], although the greater severity of Delta.
 The Omicron variant, on the other hand, which has shown a transmission advantage but decreased severity compared to other lineages [@pearson2021;@nyberg2022], shows significantly reduced viral loads.
+Combined with recent evidence that Ct values do not always correspond to infectious viral loads [@puhach2022], this suggests caution is warranted when trying to infer viral characteristics from Ct values.
 
-It has previously been suggested that viral loads may be a useful quantity to monitor as part of real-time surveillance of infectious disease dynamics [@hay2021].
-Our results show evidence of "epidemic phase bias", whereby a model taking into account relevant determinants of viral loads such as variant, age and variant and vaccination status underestimates viral loads at times of increasing case numbers and overestimates them at times of decreasing viral loads.
-This suggest future avenues of research whereby integrating Ct values from routine surveillance sources into analysis of real-time dynamics, in particular at a time when community may have been scaled back and overall case numbers are sampled from a smaller proportion of the population, could improve 
-the accuracy and timeliness of estimates.
+It has further been suggested that Ct values may be a useful quantity to monitor as part of real-time surveillance of infectious disease dynamics [@hay2021;@tso2021;lin2022].
+Our results, too, show evidence of "epidemic phase bias", whereby a model taking into account relevant determinants of Ct values such as variant, age and variant and vaccination status overestimates Ct values at times of increasing case numbers and underestimates them at times of decreasing case numbers.
+That said, whilst this study adds to the evidence that Ct values can correspond to epidemic growth rate, we are not aware of any work that has demonstrated the use of a practical tool that can be used in real-time to improve predictions of infectious disease dynamics.
+Here, too, the real-time benefit is only suggested as we have used the full retrospective data set in all analyses rather than assessing the value of Ct values available in real time.
+There is clearly scope for further research into whether integrating Ct values from routine surveillance sources into analysis of real-time dynamics, in particular at a time when community may have been scaled back and overall case numbers are sampled from a smaller proportion of the population, could improve the accuracy and timeliness of estimates.
 
 # Acknowledgements
 
-We thank Sang Woo Park for helpful comments. SF and SA were funded by a Wellcome Trust Senior Research Fellowship (to SF, 210758/Z/18/Z)
+We thank Sang Woo Park for helpful comments. SF and SA were funded by a Wellcome Trust Senior Research Fellowship (to SF, 210758/Z/18/Z).
 
 # References
 
