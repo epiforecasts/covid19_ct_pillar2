@@ -6,7 +6,7 @@ The analysis is implemented in `R` with heavy use of the `mgcv` package.
 
 # Citation
 
-S. Funk, S. Abbott. _Viral loads in symptomatic Covid-19 cases in England _ (2022). https://github.com/epiforecasts/covid19_ct_pillar2
+S. Funk, S. Abbott. _Viral loads in symptomatic Covid-19 cases in England_ (2022). https://github.com/epiforecasts/covid19_ct_pillar2
 
 # Documentation
 
