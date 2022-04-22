@@ -2,9 +2,9 @@
 
 In this work we analyse Ct values as a proxy for viral loads in symptomatic Pillar 2 cases in England. We describe trends as a function of the number of days since symptom onset, age, variant, number of vaccine doses, reinfection status, processing laboratory, and interactions between these variables. We further try to recover time trends using a model that incorporates all these factors, and investigate the role of epidemic phase bias.
 
-This is work in progress. Suggestions, comments or corrections will be very welcome.
+This is work in progress. Suggestions, comments or corrections are be very welcome.
 
-The report is available in [html](https://epiforecasts.io/covid19_ct_pillar2/report) or [pdf](https://epiforecasts.io/covid19_ct_pillar2/report) format.
+The report is available in [html](https://epiforecasts.io/covid19_ct_pillar2/report) or [pdf](https://epiforecasts.io/covid19_ct_pillar2/report.pdf) format.
 
 The analysis is implemented in `R` with heavy use of the `mgcv` package.
 
@@ -35,4 +35,4 @@ remotes::install_dev_deps()
 
 ## Reproducing our results
 
-Once data access has been obtained run `scripts/fit_model.r`. Note that fitting the model may take up to 10 hours on a fast multi-core machine. Alternatively, simple render `report.Rmd` and this script will be called if results are not present.
+Once data access has been obtained run `scripts/fit_model.r`. Note that fitting the model may take up to 10 hours on a fast multi-core machine. Alternatively, render `report.Rmd` and this script will be called if results are not present.
