@@ -389,6 +389,10 @@ Our results show evidence of "epidemic phase bias", whereby a model taking into 
 This suggest future avenues of research whereby integrating Ct values from routine surveillance sources into analysis of real-time dynamics, in particular at a time when community may have been scaled back and overall case numbers are sampled from a smaller proportion of the population, could improve 
 the accuracy and timeliness of estimates.
 
+# Acknowledgements
+
+We thank Sang Woo Park for helpful comments. SF and SA were funded by a Wellcome Trust Senior Research Fellowship (to SF, 210758/Z/18/Z)
+
 # References
 
 <div id = 'refs'></div>
