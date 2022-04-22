@@ -1,5 +1,5 @@
 ---
-title: "Viral loads in symptomatic Covid-19 cases in England"
+title: "Cycle threshold values in symptomatic Covid-19 cases in England"
 author : Sebastian Funk, Sam Abbott
 date: "`r format(Sys.Date(), format = '%B %d, %Y')` - WORK IN PROGRESS PREPRINT"
 bibliography: references.bib
