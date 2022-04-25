@@ -23,7 +23,9 @@ output:
   bookdown::pdf_document2:
     toc: false
     number_sections: false
-  bookdown::html_document2: default
+  bookdown::html_document2:
+    number_sections: false
+    default: true
 ---
 
 For correspondence: sebastian.funk@lshtm.ac.uk
