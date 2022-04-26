@@ -387,7 +387,7 @@ Of these two aspects viral loads in the data presented here appears more closely
 The Omicron variant, on the other hand, which has shown a transmission advantage but decreased severity compared to other lineages [@pearson2021;@nyberg2022], shows significantly reduced viral loads.
 Combined with recent evidence that Ct values do not always correspond to infectious viral loads [@puhach2022], this suggests caution is warranted when trying to infer viral characteristics from Ct values.
 
-It has further been suggested that Ct values may be a useful quantity to monitor as part of real-time surveillance of infectious disease dynamics [@hay2021;@tso2021;lin2022].
+It has further been suggested that Ct values may be a useful quantity to monitor as part of real-time surveillance of infectious disease dynamics [@hay2021;@tso2021;@lin2022].
 Our results, too, show evidence of "epidemic phase bias", whereby a model taking into account relevant determinants of Ct values such as variant, age and variant and vaccination status overestimates Ct values at times of increasing case numbers and underestimates them at times of decreasing case numbers.
 That said, whilst this study adds to the evidence that Ct values can correspond to epidemic growth rate, we are not aware of any work that has demonstrated the use of a practical tool that can be used in real-time to improve predictions of infectious disease dynamics.
 Here, too, the real-time benefit is only suggested as we have used the full retrospective data set in all analyses rather than assessing the value of Ct values available in real time.
