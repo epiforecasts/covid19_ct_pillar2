@@ -395,7 +395,8 @@ There is clearly scope for further research into whether integrating Ct values f
 
 # Acknowledgements
 
-We thank Sang Woo Park for helpful comments. SF and SA were funded by a Wellcome Trust Senior Research Fellowship (to SF, 210758/Z/18/Z).
+We are grateful to the Scientific Pandemic Influenza Group on Modelling (SPI-M)
+for discussions of this work, and to the UK Health Security Agency (UKHSA) for sharing the data. We thank Sang Woo Park for helpful comments. SF and SA were funded by a Wellcome Trust Senior Research Fellowship (to SF, 210758/Z/18/Z).
 
 # References
 
