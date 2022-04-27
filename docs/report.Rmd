@@ -231,7 +231,7 @@ Mean viral loads as estimated from Ct values in the unvaccinated varied as a fun
 Estimated viral loads at peak were highest for Delta with, however, an earlier decline as a function of time since symptom onset compared to Alpha, the variant with the second highest viral load.
 Estimated viral loads from Omicron infections declined slower as a function of time since symptom onset than from any of the other variants.
 
-```{r means, echo = FALSE, fig.cap = "Estimated mean Ct values in (A) unvaccinated patients without any known prior infection, in unvaccinated patients as a function of whether there was knowledge of any prior infection (B), and in patients without any known prior infection as a function of the number of vaccine doses (C). Bands indicate the 95% credible interval for the mean Ct value", fig.width = 12}
+```{r means, echo = FALSE, fig.cap = "Estimated mean Ct values in (A) those unvaccinated without any known prior infection, in those unvaccinated as a function of whether there was knowledge of any prior infection (B), and in those without any known prior infection as a function of the number of vaccine doses (C). Bands indicate the 95% credible interval for the mean Ct value", fig.width = 12}
 p1 <- ggplot(means[["means"]] %>%
             filter(dose == "dose0",
                    reinfection == "no known previous infection"),
