@@ -27,10 +27,6 @@ load_data <- function(variant_file, max_days_since_onset = 6) {
       ),
       variant = sub("BA.2", "BA2", variant),
       ivdr = factor(interaction(variant, dose, reinfection)),
-      sex = factor(sex),
-      variant = factor(variant),
-      reinfection = factor(reinfection),
-      source_lab = factor(source_lab),
       month_year = format(onsetdate, "%b %Y"),
       epidemic = epidemic_phase[variant],
       declining = declining_phase[variant],
@@ -38,6 +34,10 @@ load_data <- function(variant_file, max_days_since_onset = 6) {
         !is.na(epidemic) & epidemic == month_year, "increasing",
         if_else(!is.na(declining) & declining == month_year, "declining",
                 NA_character_)),
+      sex = factor(sex),
+      source_lab = factor(source_lab),
+      variant = factor(variant),
+      reinfection = factor(reinfection),
       age_group = socialmixr::reduce_agegroups(
                                 age, limits = seq(0, 80, by = 20)),
       age_group = socialmixr::limits_to_agegroups(age_group)

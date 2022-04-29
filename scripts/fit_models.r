@@ -17,11 +17,14 @@ suppressWarnings(dir.create(here::here("output")))
 ## GAM fit
 system.time(fit <- bam(ct ~
              0 +
-             ivdr +
+             variant +
+             dose +
+	     reinfection +
              sex +
              source_lab +
-             te(days_since_onset, age, by = ivdr, k = c(7, 10)),
-           data = ct, family = Gamma(link = "identity")))
+	     s(age, k = 10) +
+             s(days_since_onset, k = 7),
+             data = ct, family = Gamma(link = "identity")))
 saveRDS(fit, fit_file)
 
 ## means estimates
